@@ -44,9 +44,12 @@ let s:type_dict = {
 
 function! StatusLine(winnum) abort
     let stl = '%<'
-    let stl .= match(&clipboard, 'unnamed') > -1 ? ' @ ' : ''
 
     if a:winnum == winnr()
+        if match(&clipboard, 'unnamed') > -1
+            let stl .= printf(' %s %s', s:symbols.clipboard, s:symbols.right)
+        endif
+
         let stl .= s:ActiveStatusLine(a:winnum)
     else
         let stl .= s:InactiveStatusLine(a:winnum)
@@ -60,16 +63,13 @@ function! s:ActiveStatusLine(winnum) abort
     let type = s:GetBufferType(bufnum)
     let name = fnamemodify(bufname(bufnum), ':t')
 
-    let stl = ''
+    let stl = s:GetAlternativeStatus(type, name)
 
-    let status = s:AlternativeStatus(type, fnamemodify(name, ':t'))
-    if strlen(status)
-        let stl .= ' ' . status . ' '
-    endif
+    if empty(stl)
+        let left_ary = []
 
-    if s:DisplayFileName(type, name)
         " git branch
-        if exists('*fugitive#head')
+        if !s:IsTinyWindow() && exists('*fugitive#head')
             let head = fugitive#head()
 
             if empty(head) && exists('*fugitive#detect') && !exists('b:git_dir')
@@ -78,21 +78,14 @@ function! s:ActiveStatusLine(winnum) abort
             endif
 
             if strlen(head)
-                let stl .= ' ' . head . ' '
+                call add(left_ary, head)
             endif
         endif
 
-        " file name
-        let stl .= ' %f'
+        " file name %f
+        call add(left_ary, s:GetFileName(bufnum))
 
-        " file modified and modifiable
-        let modified = getbufvar(bufnum, '&modified')
-        let modifiable = getbufvar(bufnum, '&modifiable')
-        let stl .= modified ? (!modifiable ? '[+-]' : '[+]') : ''
-
-        " read only
-        let readonly = getbufvar(bufnum, '&readonly')
-        let stl .= readonly ? ' RO' : ''
+        let stl .= ' ' . join(left_ary, printf(' %s ', s:symbols.right))
     endif
 
     let stl .= '%*'
@@ -100,26 +93,42 @@ function! s:ActiveStatusLine(winnum) abort
     " right side
     let stl .= '%='
 
-    if s:DisplayFileInfo(type, name)
-        " file type
-        let stl .= strlen(type) ? ' ' . type . ' ' : ''
+    if s:ShowMoreFileInfo(type, name)
+        let right_ary = []
 
         " file encoding
-        let fileencoding = getbufvar(bufnum, '&fileencoding')
-        if empty(fileencoding)
-            let fileencoding = getbufvar(bufnum, '&encoding')
+        let encoding = getbufvar(bufnum, '&fileencoding')
+        if empty(encoding)
+            let encoding = getbufvar(bufnum, '&encoding')
         endif
-        let stl .= empty(fileencoding) || fileencoding ==# 'utf-8' ? '' : (' ' . fileencoding . ' ')
+
+        if strlen(encoding) && encoding !=# 'utf-8'
+            call add(right_ary, encoding)
+        endif
 
         " file format
-        let fileformat = getbufvar(bufnum, '&fileformat')
-        let stl .= empty(fileformat) || fileformat ==# 'unix' ? '' : ' ' . fileformat . ' '
+        let format  = getbufvar(bufnum, '&fileformat')
+        if strlen(format) && format !=# 'unix'
+            call add(right_ary, format)
+        endif
+
+        " file type
+        if strlen(type)
+            call add(right_ary, type)
+        endif
+
+        " tabs/spaces
+        " let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(bufnum, '&shiftwidth')
+        " if getbufvar(bufnum, '&expandtab')
+        "     call add(right_ary, 'Spaces:' . shiftwidth)
+        " else
+        "     call add(right_ary, 'TabSize:' . shiftwidth)
+        " endif
+
+        let stl .= join(right_ary, printf(' %s ', s:symbols.left))
     endif
 
-    if s:DisplayPercentage(type, name)
-        " percentage, line number and colum number
-        let stl .= ' %3p%% : %4l:%3c '
-    endif
+    let stl .= ' '
 
     return stl
 endfunction
@@ -129,56 +138,72 @@ function! s:InactiveStatusLine(winnum) abort
     let type = s:GetBufferType(bufnum)
     let name = fnamemodify(bufname(bufnum), ':t')
 
-    let stl = ''
+    let stl = s:GetAlternativeStatus(type, name)
 
-    let status = s:AlternativeStatus(type, name)
-    if strlen(status)
-        let stl .=  ' ' . status . ' '
-    endif
-
-    if s:DisplayFileName(type, name)
-        " file name
-        let stl .= ' %f'
+    if empty(stl)
+        " file name %f
+        let stl .=  printf(' %s %s %s', s:symbols.left, s:GetFileName(bufnum), s:symbols.right)
     endif
 
     return stl
 endfunction
 
-function! s:AlternativeStatus(type, name) abort
+function! s:GetAlternativeStatus(type, name) abort
     let stl = ''
+
     if has_key(s:name_dict, a:name)
-        let stl = get(s:name_dict, a:name)
+        let stl = ' ' . get(s:name_dict, a:name) . ' '
     elseif has_key(s:type_dict, a:type)
-        let stl = get(s:type_dict, a:type)
+        let stl = ' ' . get(s:type_dict, a:type) . ' '
+
         if a:type ==? 'help'
-            let stl .= ' ' . a:name
+            let stl .= fnamemodify(bufname('%'), ':~') . ' '
         endif
     endif
+
     return stl
 endfunction
 
-function! s:DisplayFileName(type, name) abort
-    if has_key(s:name_dict, a:name) || has_key(s:type_dict, a:type)
-        return 0
-    else
-        return 1
-    endif
+
+function! s:ShowMoreFileInfo(type, name) abort
+    return !s:IsSmallWindow() && !s:HaveAlternateStatus(a:type, a:name)
 endfunction
 
-function! s:DisplayFileInfo(type, name) abort
-    if winwidth(0) < 50 || has_key(s:name_dict, a:name) || has_key(s:type_dict, a:type)
-        return 0
-    else
-        return 1
-    endif
+function! s:HaveAlternateStatus(type, name) abort
+    return has_key(s:name_dict, a:name) || has_key(s:type_dict, a:type)
 endfunction
 
-function! s:DisplayPercentage(type, name) abort
-    if winwidth(0) < 50 || has_key(s:name_dict, a:name) || a:type =~? 'netrw\|nerdtree\|startify\|vim-plug'
-        return 0
+function! s:GetFileName(bufnum) abort
+    let name = bufname(a:bufnum)
+
+    if empty(name)
+        let name = '[No Name]'
     else
-        return 1
-    end
+        let name = fnamemodify(name, ':~:.')
+
+        if s:IsTinyWindow()
+            let name = fnamemodify(name, ':t')
+        elseif s:IsSmallWindow()
+            let name = substitute(name, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
+        endif
+    endif
+
+    " file modified and modifiable
+    if getbufvar(a:bufnum, '&modified')
+        if !getbufvar(a:bufnum, '&modifiable')
+            let name .= '[-+]'
+        else
+            let name .= '[+]'
+        endif
+    elseif !getbufvar(a:bufnum, '&modifiable')
+        let name .= '[-]'
+    endif
+
+    if getbufvar(a:bufnum, '&readonly')
+        let name .= ' ' . s:symbols.readonly
+    endif
+
+    return name
 endfunction
 
 function! s:GetBufferType(bufnum) abort
@@ -189,6 +214,14 @@ function! s:GetBufferType(bufnum) abort
     endif
 
     return type
+endfunction
+
+function! s:IsSmallWindow() abort
+    return winwidth(0) < 50
+endfunction
+
+function! s:IsTinyWindow() abort
+    return winwidth(0) < 30
 endfunction
 
 function! s:RefreshStatusLine() abort
