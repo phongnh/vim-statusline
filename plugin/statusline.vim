@@ -8,8 +8,17 @@ endif
 
 let g:loaded_vim_statusline = 1
 
+" Symbols
+let s:symbols = {
+            \ 'clipboard': '@',
+            \ 'left':      '«',
+            \ 'right':     '»',
+            \ 'readonly':  'RO',
+            \ }
+
 " Statusline
 let s:name_dict = {
+            \ '__Tagbar__':        'Tagbar',
             \ '__Gundo__':         'Gundo',
             \ '__Gundo_Preview__': 'Gundo Preview',
             \ '[BufExplorer]':     'BufExplorer',
@@ -194,3 +203,40 @@ augroup vim-statusline
     autocmd!
     autocmd VimEnter,VimLeave,WinEnter,WinLeave,BufWinEnter,BufWinLeave * :RefreshStatusLine
 augroup END
+
+" CtrlP Integration
+let g:ctrlp_status_func = {
+            \ 'main': 'CtrlPMainStatusLine',
+            \ 'prog': 'CtrlPProgressStatusLine',
+            \ }
+
+function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) abort
+    let focus   = '%#LineNr# ' . a:focus . ' %*'
+    let byfname = '%#Character# ' . a:byfname . ' %*'
+    let item    = '%#Character# ' . a:item . ' %*'
+    let dir     = s:GetCurrentDir()
+    return printf(' CtrlP %s %s %s %s %s %%=%%<%s%s %s ', s:symbols.right, a:prev, item, a:next, a:marked, focus, byfname, dir)
+endfunction
+
+function! CtrlPProgressStatusLine(len) abort
+    return printf(' %s %%=%%< %s ', a:len, s:GetCurrentDir())
+endfunction
+
+" Tagbar Integration
+let g:tagbar_status_func = 'TagbarStatusFunc'
+
+function! TagbarStatusFunc(current, sort, fname, flags, ...) abort
+    if empty(a:flags)
+        return printf(' [%s] %s %s', a:sort, s:symbols.right, a:fname)
+    else
+        return printf(' [%s] [%s] %s %s', a:sort, join(a:flags, ''), s:symbols.right, a:fname)
+    endif
+endfunction
+
+function! s:GetCurrentDir() abort
+    let dir = fnamemodify(getcwd(), ':~:.')
+    if empty(dir)
+        let dir = getcwd()
+    endif
+    return dir
+endfunction
