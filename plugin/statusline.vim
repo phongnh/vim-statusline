@@ -48,10 +48,7 @@ endfunction
 
 function! s:ActiveStatusLine(winnum) abort
     let bufnum = winbufnr(a:winnum)
-    let type = getbufvar(bufnum, '&filetype')
-    if empty(type)
-        let type = getbufvar(bufnum, '&buftype')
-    endif
+    let type = s:GetBufferType(bufnum)
     let name = fnamemodify(bufname(bufnum), ':t')
 
     let stl = ''
@@ -120,10 +117,7 @@ endfunction
 
 function! s:InactiveStatusLine(winnum) abort
     let bufnum = winbufnr(a:winnum)
-    let type = getbufvar(bufnum, '&filetype')
-    if empty(type)
-        let type = getbufvar(bufnum, '&filetype')
-    endif
+    let type = s:GetBufferType(bufnum)
     let name = fnamemodify(bufname(bufnum), ':t')
 
     let stl = ''
@@ -176,6 +170,16 @@ function! s:DisplayPercentage(type, name) abort
     else
         return 1
     end
+endfunction
+
+function! s:GetBufferType(bufnum) abort
+    let type = getbufvar(a:bufnum, '&filetype')
+
+    if empty(type)
+        let type = getbufvar(a:bufnum, '&buftype')
+    endif
+
+    return type
 endfunction
 
 function! s:RefreshStatusLine() abort
