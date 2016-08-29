@@ -25,7 +25,7 @@ let s:name_dict = {
             \ 'NERD_tree':         'NERDTree',
             \ 'NERD_tree_1':       'NERDTree',
             \ '[Plugins]':         'Plugins',
-            \ '[Command Line]':    'CommandLine',
+            \ '[Command Line]':    'Command Line',
             \ }
 
 let s:type_dict = {
@@ -234,7 +234,7 @@ command! RefreshStatusLine :call s:RefreshStatusLine()
 
 augroup vim-statusline
     autocmd!
-    autocmd VimEnter,WinEnter,BufWinEnter * :RefreshStatusLine
+    autocmd VimEnter,WinEnter,BufWinEnter,CmdWinEnter * :RefreshStatusLine
 augroup END
 
 " CtrlP Integration
