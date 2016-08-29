@@ -234,7 +234,7 @@ command! RefreshStatusLine :call s:RefreshStatusLine()
 
 augroup vim-statusline
     autocmd!
-    autocmd VimEnter,VimLeave,WinEnter,WinLeave,BufWinEnter,BufWinLeave * :RefreshStatusLine
+    autocmd VimEnter,WinEnter,BufWinEnter * :RefreshStatusLine
 augroup END
 
 " CtrlP Integration
