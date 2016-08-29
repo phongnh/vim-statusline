@@ -8,9 +8,8 @@ endif
 
 let g:loaded_vim_statusline = 1
 
-" Window widths
-let s:small_window_width = 50
-let s:tiny_window_width  = 30
+" Window width
+let s:small_window_width = 60
 
 " Symbols
 let s:symbols = {
@@ -69,9 +68,10 @@ function! s:ActiveStatusLine(winnum) abort
 
     if empty(stl)
         let left_ary = []
+        let filename = s:GetFileNameAndFlags(a:winnum, bufnum)
 
         " git branch
-        if !s:IsTinyWindow(a:winnum) && exists('*fugitive#head')
+        if !s:IsSmallWindow(a:winnum) && exists('*fugitive#head')
             let head = fugitive#head()
 
             if empty(head) && exists('*fugitive#detect') && !exists('b:git_dir')
@@ -79,13 +79,15 @@ function! s:ActiveStatusLine(winnum) abort
                 let head = fugitive#head()
             endif
 
-            if !empty(head) && strlen(head) < winwidth(a:winnum)
+            let len = strlen(head)
+            let winwidth = winwidth(a:winnum) - 2
+            if len && len < winwidth && (len + strlen(filename) + 3) < winwidth
                 call add(left_ary, head)
             endif
         endif
 
         " file name %f
-        call add(left_ary, s:GetFileNameAndFlags(a:winnum, bufnum))
+        call add(left_ary, filename)
 
         let stl .= ' ' . join(left_ary, printf(' %s ', s:symbols.right))
     endif
@@ -93,12 +95,12 @@ function! s:ActiveStatusLine(winnum) abort
     let stl .= '%*'
 
     " right side
-    let stl .= '%='
+    let stl .= ' %=%<'
 
     let type = s:GetBufferType(bufnum)
     let name = s:GetBufferName(bufnum)
 
-    if s:ShowMoreFileInfo(a:winnum, type, name)
+    if s:ShowMoreFileInfo(type, name)
         let right_ary = []
 
         " file encoding
@@ -181,15 +183,14 @@ function! s:GetFileName(winnum, bufnum) abort
         let name = '[No Name]'
     else
         let name = fnamemodify(name, ':~:.')
+        let winwidth = winwidth(a:winnum) - 2
 
-        if s:IsTinyWindow(a:winnum)
-            let name = fnamemodify(name, ':t')
-        elseif s:IsSmallWindow(a:winnum)
+        if strlen(name) > winwidth
             let name = substitute(name, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
-        endif
 
-        if strlen(name) > winwidth(a:winnum)
-            let name = fnamemodify(name, ':t')
+            if strlen(name) > winwidth
+                let name = fnamemodify(name, ':t')
+            endif
         endif
     endif
 
@@ -231,20 +232,12 @@ function! s:GetBufferName(bufnum) abort
     return fnamemodify(bufname(a:bufnum), ':t')
 endfunction
 
-function! s:HaveAlternateStatus(type, name) abort
-    return has_key(s:name_dict, a:name) || has_key(s:type_dict, a:type)
-endfunction
-
-function! s:ShowMoreFileInfo(winnum, type, name) abort
-    return !s:IsSmallWindow(a:winnum) && !s:HaveAlternateStatus(a:type, a:name)
+function! s:ShowMoreFileInfo(type, name) abort
+    return !has_key(s:name_dict, a:name) && !has_key(s:type_dict, a:type)
 endfunction
 
 function! s:IsSmallWindow(winnum) abort
     return winwidth(a:winnum) < s:small_window_width
-endfunction
-
-function! s:IsTinyWindow(winnum) abort
-    return winwidth(a:winnum) < s:tiny_window_width
 endfunction
 
 function! s:RefreshStatusLine() abort
