@@ -8,6 +8,10 @@ endif
 
 let g:loaded_vim_statusline = 1
 
+" Window widths
+let s:small_window_width = 50
+let s:tiny_window_width  = 30
+
 " Symbols
 let s:symbols = {
             \ 'clipboard': '@',
@@ -16,7 +20,7 @@ let s:symbols = {
             \ 'readonly':  'RO',
             \ }
 
-" Statusline
+" Alternate status dictionaries
 let s:name_dict = {
             \ '__Tagbar__':        'Tagbar',
             \ '__Gundo__':         'Gundo',
@@ -33,7 +37,7 @@ let s:type_dict = {
             \ 'nerdtree':      'NERDTree',
             \ 'startify':      'Startify',
             \ 'vim-plug':      'VimPlug',
-            \ 'help':          'Help',
+            \ 'help':          'HELP',
             \ 'qf':            'QuickFix',
             \ 'quickfix':      'QuickFix',
             \ 'godoc':         'GoDoc',
@@ -60,16 +64,14 @@ endfunction
 
 function! s:ActiveStatusLine(winnum) abort
     let bufnum = winbufnr(a:winnum)
-    let type = s:GetBufferType(bufnum)
-    let name = fnamemodify(bufname(bufnum), ':t')
 
-    let stl = s:GetAlternativeStatus(type, name)
+    let stl = s:GetAlternativeStatus(a:winnum, bufnum)
 
     if empty(stl)
         let left_ary = []
 
         " git branch
-        if !s:IsTinyWindow() && exists('*fugitive#head')
+        if !s:IsTinyWindow(a:winnum) && exists('*fugitive#head')
             let head = fugitive#head()
 
             if empty(head) && exists('*fugitive#detect') && !exists('b:git_dir')
@@ -77,13 +79,13 @@ function! s:ActiveStatusLine(winnum) abort
                 let head = fugitive#head()
             endif
 
-            if strlen(head)
+            if !empty(head) && strlen(head) < winwidth(a:winnum)
                 call add(left_ary, head)
             endif
         endif
 
         " file name %f
-        call add(left_ary, s:GetFileName(bufnum))
+        call add(left_ary, s:GetFileNameAndFlags(a:winnum, bufnum))
 
         let stl .= ' ' . join(left_ary, printf(' %s ', s:symbols.right))
     endif
@@ -93,7 +95,10 @@ function! s:ActiveStatusLine(winnum) abort
     " right side
     let stl .= '%='
 
-    if s:ShowMoreFileInfo(type, name)
+    let type = s:GetBufferType(bufnum)
+    let name = s:GetBufferName(bufnum)
+
+    if s:ShowMoreFileInfo(a:winnum, type, name)
         let right_ary = []
 
         " file encoding
@@ -135,45 +140,41 @@ endfunction
 
 function! s:InactiveStatusLine(winnum) abort
     let bufnum = winbufnr(a:winnum)
-    let type = s:GetBufferType(bufnum)
-    let name = fnamemodify(bufname(bufnum), ':t')
 
-    let stl = s:GetAlternativeStatus(type, name)
+    let stl = s:GetAlternativeStatus(a:winnum, bufnum)
 
     if empty(stl)
         " file name %f
-        let stl .=  printf(' %s %s %s', s:symbols.left, s:GetFileName(bufnum), s:symbols.right)
+        let stl .=  printf(' %s %s %s', s:symbols.left, s:GetFileNameAndFlags(a:winnum, bufnum), s:symbols.right)
     endif
 
     return stl
 endfunction
 
-function! s:GetAlternativeStatus(type, name) abort
+function! s:GetAlternativeStatus(winnum, bufnum) abort
+    let type = s:GetBufferType(a:bufnum)
+    let name = s:GetBufferName(a:bufnum)
+
     let stl = ''
 
-    if has_key(s:name_dict, a:name)
-        let stl = ' ' . get(s:name_dict, a:name) . ' '
-    elseif has_key(s:type_dict, a:type)
-        let stl = ' ' . get(s:type_dict, a:type) . ' '
+    if has_key(s:name_dict, name)
+        let stl = ' ' . get(s:name_dict, name) . ' '
+    elseif has_key(s:type_dict, type)
+        let stl = ' ' . get(s:type_dict, type) . ' '
 
-        if a:type ==? 'help'
-            let stl .= fnamemodify(bufname('%'), ':~') . ' '
+        if type ==? 'help'
+            let stl .= s:GetFileName(a:winnum, a:bufnum) . ' '
         endif
     endif
 
     return stl
 endfunction
 
-
-function! s:ShowMoreFileInfo(type, name) abort
-    return !s:IsSmallWindow() && !s:HaveAlternateStatus(a:type, a:name)
+function! s:GetFileNameAndFlags(winnum, bufnum) abort
+    return s:GetFileName(a:winnum, a:bufnum) . s:GetFileFlags(a:bufnum)
 endfunction
 
-function! s:HaveAlternateStatus(type, name) abort
-    return has_key(s:name_dict, a:name) || has_key(s:type_dict, a:type)
-endfunction
-
-function! s:GetFileName(bufnum) abort
+function! s:GetFileName(winnum, bufnum) abort
     let name = bufname(a:bufnum)
 
     if empty(name)
@@ -181,29 +182,39 @@ function! s:GetFileName(bufnum) abort
     else
         let name = fnamemodify(name, ':~:.')
 
-        if s:IsTinyWindow()
+        if s:IsTinyWindow(a:winnum)
             let name = fnamemodify(name, ':t')
-        elseif s:IsSmallWindow()
+        elseif s:IsSmallWindow(a:winnum)
             let name = substitute(name, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
         endif
+
+        if strlen(name) > winwidth(a:winnum)
+            let name = fnamemodify(name, ':t')
+        endif
     endif
+
+    return name
+endfunction
+
+function! s:GetFileFlags(bufnum)
+    let flags = ''
 
     " file modified and modifiable
     if getbufvar(a:bufnum, '&modified')
         if !getbufvar(a:bufnum, '&modifiable')
-            let name .= '[-+]'
+            let flags .= '[-+]'
         else
-            let name .= '[+]'
+            let flags .= '[+]'
         endif
     elseif !getbufvar(a:bufnum, '&modifiable')
-        let name .= '[-]'
+        let flags .= '[-]'
     endif
 
     if getbufvar(a:bufnum, '&readonly')
         let name .= ' ' . s:symbols.readonly
     endif
 
-    return name
+    return flags
 endfunction
 
 function! s:GetBufferType(bufnum) abort
@@ -216,12 +227,24 @@ function! s:GetBufferType(bufnum) abort
     return type
 endfunction
 
-function! s:IsSmallWindow() abort
-    return winwidth(0) < 50
+function! s:GetBufferName(bufnum) abort
+    return fnamemodify(bufname(a:bufnum), ':t')
 endfunction
 
-function! s:IsTinyWindow() abort
-    return winwidth(0) < 30
+function! s:HaveAlternateStatus(type, name) abort
+    return has_key(s:name_dict, a:name) || has_key(s:type_dict, a:type)
+endfunction
+
+function! s:ShowMoreFileInfo(winnum, type, name) abort
+    return !s:IsSmallWindow(a:winnum) && !s:HaveAlternateStatus(a:type, a:name)
+endfunction
+
+function! s:IsSmallWindow(winnum) abort
+    return winwidth(a:winnum) < s:small_window_width
+endfunction
+
+function! s:IsTinyWindow(winnum) abort
+    return winwidth(a:winnum) < s:tiny_window_width
 endfunction
 
 function! s:RefreshStatusLine() abort
@@ -273,3 +296,26 @@ function! s:GetCurrentDir() abort
     endif
     return dir
 endfunction
+
+" ZoomWin Integration
+let s:ZoomWin_funcref = []
+
+if exists('g:ZoomWin_funcref')
+    if type(g:ZoomWin_funcref) == 2
+        let s:ZoomWin_funcref = [g:ZoomWin_funcref]
+    elseif type(g:ZoomWin_funcref) == 3
+        let s:ZoomWin_funcref = g:ZoomWin_funcref
+    endif
+endif
+
+function! ZoomWinStatusLine(zoomstate) abort
+    for f in s:ZoomWin_funcref
+        if type(f) == 2
+            call f(a:zoomstate)
+        endif
+    endfor
+
+    call s:RefreshStatusLine()
+endfunction
+
+let g:ZoomWin_funcref= function('ZoomWinStatusLine')
