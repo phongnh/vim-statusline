@@ -46,16 +46,16 @@ let s:type_dict = {
             \ }
 
 function! StatusLine(winnum) abort
-    let stl = '%<'
-
     if a:winnum == winnr()
+        let stl = ''
+
         if match(&clipboard, 'unnamed') > -1
             let stl .= printf(' %s %s', s:symbols.clipboard, s:symbols.right)
         endif
 
         let stl .= s:ActiveStatusLine(a:winnum)
     else
-        let stl .= s:InactiveStatusLine(a:winnum)
+        let stl = s:InactiveStatusLine(a:winnum)
     endif
 
     return stl
@@ -89,7 +89,7 @@ function! s:ActiveStatusLine(winnum) abort
         " file name %f
         call add(left_ary, filename)
 
-        let stl .= ' ' . join(left_ary, printf(' %s ', s:symbols.right))
+        let stl .= ' %<' . join(left_ary, printf(' %s ', s:symbols.right))
     endif
 
     let stl .= '%*'
@@ -147,7 +147,7 @@ function! s:InactiveStatusLine(winnum) abort
 
     if empty(stl)
         " file name %f
-        let stl .=  printf(' %s %s %s', s:symbols.left, s:GetFileNameAndFlags(a:winnum, bufnum), s:symbols.right)
+        let stl .=  printf(' %%<%s %s %s', s:symbols.left, s:GetFileNameAndFlags(a:winnum, bufnum), s:symbols.right)
     endif
 
     return stl
@@ -160,12 +160,12 @@ function! s:GetAlternativeStatus(winnum, bufnum) abort
     let stl = ''
 
     if has_key(s:name_dict, name)
-        let stl = ' ' . get(s:name_dict, name) . ' '
+        let stl = ' ' . get(s:name_dict, name)
     elseif has_key(s:type_dict, type)
-        let stl = ' ' . get(s:type_dict, type) . ' '
+        let stl = ' ' . get(s:type_dict, type)
 
         if type ==? 'help'
-            let stl .= s:GetFileName(a:winnum, a:bufnum) . ' '
+            let stl .= ' %<' . s:GetFileName(a:winnum, a:bufnum)
         endif
     endif
 
