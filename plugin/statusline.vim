@@ -79,9 +79,9 @@ function! s:ActiveStatusLine(winnum) abort
                 let head = fugitive#head()
             endif
 
-            let len = strlen(head)
             let winwidth = winwidth(a:winnum) - 2
-            if len && len < winwidth && (len + strlen(filename) + 3) < winwidth
+            let len = strlen(head)
+            if len > 0 && len < 51 && len < winwidth && (len + strlen(filename) + 3) < winwidth
                 call add(left_ary, head)
             endif
         endif
