@@ -21,14 +21,16 @@ let s:symbols = {
 
 " Alternate status dictionaries
 let s:name_dict = {
-            \ '__Tagbar__':        'Tagbar',
-            \ '__Gundo__':         'Gundo',
-            \ '__Gundo_Preview__': 'Gundo Preview',
-            \ '[BufExplorer]':     'BufExplorer',
-            \ 'NERD_tree':         'NERDTree',
-            \ 'NERD_tree_1':       'NERDTree',
-            \ '[Plugins]':         'Plugins',
-            \ '[Command Line]':    'Command Line',
+            \ '__Tagbar__':           'Tagbar',
+            \ '__Gundo__':            'Gundo',
+            \ '__Gundo_Preview__':    'Gundo Preview',
+            \ '[BufExplorer]':        'BufExplorer',
+            \ 'NERD_tree':            'NERDTree',
+            \ 'NERD_tree_1':          'NERDTree',
+            \ '__committia_status__': 'Committia Status',
+            \ '__committia_diff__':   'Committia Diff',
+            \ '[Plugins]':            'Plugins',
+            \ '[Command Line]':       'Command Line',
             \ }
 
 let s:type_dict = {
@@ -41,7 +43,7 @@ let s:type_dict = {
             \ 'quickfix':      '%q %{get(w:, "quickfix_title", "")}',
             \ 'godoc':         'GoDoc',
             \ 'gedoc':         'GeDoc',
-            \ 'gitcommit':     'Fugitive',
+            \ 'gitcommit':     'Commit Message',
             \ 'fugitiveblame': 'FugitiveBlame',
             \ }
 
@@ -212,7 +214,7 @@ function! s:GetFileFlags(bufnum)
     endif
 
     if getbufvar(a:bufnum, '&readonly')
-        let flags .= ' ' . s:symbols.readonly
+        let flags .= ' ' . s:symbols . readonly
     endif
 
     return flags
@@ -251,6 +253,7 @@ command! RefreshStatusLine :call s:RefreshStatusLine()
 augroup vim-statusline
     autocmd!
     autocmd VimEnter,WinEnter,BufWinEnter,CmdWinEnter * call <SID>RefreshStatusLine()
+    autocmd VimResized * call <SID>RefreshStatusLine()
 augroup END
 
 " CtrlP Integration
