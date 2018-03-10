@@ -51,9 +51,7 @@ function! StatusLine(winnum) abort
     if a:winnum == winnr()
         let stl = ''
 
-        if match(&clipboard, 'unnamed') > -1
-            let stl .= printf(' %s %s', s:symbols.clipboard, s:symbols.right)
-        endif
+        let stl .= s:GetClipboardStatus()
 
         let stl .= s:ActiveStatusLine(a:winnum)
     else
@@ -61,6 +59,22 @@ function! StatusLine(winnum) abort
     endif
 
     return stl
+endfunction
+
+function! s:GetClipboardStatus() abort
+    if match(&clipboard, 'unnamed') > -1
+        return printf(' %s %s', s:symbols.clipboard, s:symbols.right)
+    endif
+    return ''
+endfunction
+
+function! s:GetTabsOrSpacesStatus(bufnum) abort
+    let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(a:bufnum, '&shiftwidth')
+    if getbufvar(a:bufnum, '&expandtab')
+        return 'Spaces: ' . shiftwidth
+    else
+        return 'Tab Size: ' . shiftwidth
+    endif
 endfunction
 
 function! s:ActiveStatusLine(winnum) abort
@@ -121,18 +135,25 @@ function! s:ActiveStatusLine(winnum) abort
             call add(right_ary, format)
         endif
 
+        " tabs/spaces
+        if !s:IsSmallWindow(a:winnum) && !(&spell && &paste)
+            call add(right_ary, s:GetTabsOrSpacesStatus(bufnum))
+        endif
+
         " file type
         if strlen(type)
             call add(right_ary, type)
         endif
 
-        " tabs/spaces
-        " let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(bufnum, '&shiftwidth')
-        " if getbufvar(bufnum, '&expandtab')
-        "     call add(right_ary, 'Spaces:' . shiftwidth)
-        " else
-        "     call add(right_ary, 'TabSize:' . shiftwidth)
-        " endif
+        " spell status
+        if &spell 
+            call add(right_ary, printf('SPELL [%s]', toupper(substitute(&spelllang, ',', '/', 'g'))))
+        endif
+
+        " paste status
+        if &paste
+            call add(right_ary, 'PASTE')
+        endif
 
         let stl .= join(right_ary, printf(' %s ', s:symbols.left))
     endif
