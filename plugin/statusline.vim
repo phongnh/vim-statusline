@@ -235,7 +235,7 @@ function! s:GetFileFlags(bufnum)
     endif
 
     if getbufvar(a:bufnum, '&readonly')
-        let flags .= ' ' . s:symbols . readonly
+        let flags .= ' ' . s:symbols.readonly
     endif
 
     return flags
