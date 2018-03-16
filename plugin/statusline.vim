@@ -271,10 +271,9 @@ endfunction
 
 command! RefreshStatusLine :call s:RefreshStatusLine()
 
-augroup vim-statusline
+augroup VimStatusline
     autocmd!
-    autocmd VimEnter,WinEnter,BufWinEnter,CmdWinEnter * call <SID>RefreshStatusLine()
-    autocmd VimResized * call <SID>RefreshStatusLine()
+    autocmd VimEnter,WinEnter,BufWinEnter,CmdWinEnter,CmdlineEnter * call <SID>RefreshStatusLine()
 augroup END
 
 " CtrlP Integration
