@@ -70,11 +70,7 @@ endfunction
 
 function! s:GetTabsOrSpacesStatus(bufnum) abort
     let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(a:bufnum, '&shiftwidth')
-    if getbufvar(a:bufnum, '&expandtab')
-        return 'Spaces: ' . shiftwidth
-    else
-        return 'Tab Size: ' . shiftwidth
-    endif
+    return (getbufvar(a:bufnum, '&expandtab') ? 'Spaces' : 'Tab Size') . ': ' . shiftwidth
 endfunction
 
 function! s:ActiveStatusLine(winnum) abort
