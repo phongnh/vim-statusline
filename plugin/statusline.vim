@@ -83,7 +83,7 @@ function! s:ActiveStatusLine(winnum) abort
         let filename = s:GetFileNameAndFlags(a:winnum, bufnum)
 
         " git branch
-        if !s:IsSmallWindow(a:winnum) && exists('*fugitive#head')
+        if !s:IsSmallWindow(a:winnum) && exists('*fugitive#head') && get(g:, 'statusline_show_git_branch', 1)
             let head = fugitive#head()
 
             if empty(head) && exists('*fugitive#detect') && !exists('b:git_dir')
