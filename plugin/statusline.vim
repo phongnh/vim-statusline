@@ -83,12 +83,17 @@ function! s:ActiveStatusLine(winnum) abort
         let filename = s:GetFileNameAndFlags(a:winnum, bufnum)
 
         " git branch
-        if !s:IsSmallWindow(a:winnum) && exists('*fugitive#head') && get(g:, 'statusline_show_git_branch', 1)
-            let head = fugitive#head()
-
-            if empty(head) && exists('*fugitive#detect') && !exists('b:git_dir')
-                call fugitive#detect(getcwd())
+        if !s:IsSmallWindow(a:winnum) && get(g:, 'statusline_show_git_branch', 1)
+            let head = ''
+            if exists('*fugitive#head')
                 let head = fugitive#head()
+
+                if empty(head) && exists('*fugitive#detect') && !exists('b:git_dir')
+                    call fugitive#detect(getcwd())
+                    let head = fugitive#head()
+                endif
+            elseif exists(':Gina') == 2
+                let head = gina#component#repo#branch()
             endif
 
             let winwidth = winwidth(a:winnum) - 2
