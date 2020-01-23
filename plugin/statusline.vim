@@ -11,12 +11,16 @@ let g:loaded_vim_statusline = 1
 " Window width
 let s:small_window_width = 60
 
+" Number of displayable tabs
+let s:displayable_tab_count = 5
+
 " Symbols
 let s:symbols = {
             \ 'clipboard': '@',
             \ 'left':      '«',
             \ 'right':     '»',
             \ 'readonly':  'RO',
+            \ 'ellipsis':   '…',
             \ }
 
 " Alternate status dictionaries
@@ -48,13 +52,16 @@ let s:type_dict = {
             \ }
 
 let g:statusline_colors = {
-            \ 'LeftStatus': 'StatusLine',
+            \ 'LeftStatus':     'StatusLine',
             \ 'InactiveStatus': 'StatusLineNC',
-            \ 'FillStatus': 'LineNr',
-            \ 'RightStatus': 'StatusLine',
-            \ 'SelectedTab': 'TabLineSel',
-            \ 'NormalTab': 'TabLine',
-            \ 'FillTab': 'LineNr',
+            \ 'FillStatus':     'LineNr',
+            \ 'RightStatus':    'StatusLine',
+            \ 'TabTitle':       'CursorLineNr',
+            \ 'TabPlaceholder': 'LineNr',
+            \ 'SelectedTab':    'TabLineSel',
+            \ 'NormalTab':      'TabLine',
+            \ 'FillTab':        'LineNr',
+            \ 'CloseButton':    'CursorLineNr',
             \ }
 
 function! s:HiSection(section) abort
@@ -124,11 +131,11 @@ function! s:FormatBranch(branch, filename, winwidth) abort
     endif
 
     if !s:IsDisplayableBranch(branch, a:filename, a:winwidth) && strlen(branch) > 30
-        let branch = strcharpart(branch, 0, 29) . '…'
+        let branch = strcharpart(branch, 0, 29) . s:symbols.ellipsis
     endif
 
     if !s:IsDisplayableBranch(branch, a:filename, a:winwidth)
-        let branch = '⎇'
+        let branch = ''
     endif
 
     return branch
@@ -268,7 +275,8 @@ function! s:GetFileNameAndFlags(winnum, bufnum) abort
 endfunction
 
 function! s:ShortenFileName(filename) abort
-    return substitute(a:filename, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
+    " return substitute(a:filename, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
+    return pathshorten(a:filename)
 endfunction
 
 function! s:GetFileName(winnum, bufnum) abort
@@ -343,35 +351,101 @@ endfunction
 
 command! RefreshStatusLine :call s:RefreshStatusLine()
 
-function! Tabline() abort
-    let s = ''
+function! s:TabPlaceholder(tab)
+    return s:HiSection('TabPlaceholder') . printf('%%%d  %s %%*', a:tab, s:symbols.ellipsis)
+endfunction
 
-    let num_of_tabs = tabpagenr('$')
+function! s:TabLabel(tabnr) abort
+    let tabnr = a:tabnr
+    let winnr = tabpagewinnr(tabnr)
+    let buflist = tabpagebuflist(tabnr)
+    let bufnr = buflist[winnr - 1]
+    let bufname = bufname(bufnr)
+    let bufmodified = getbufvar(bufnr, '&modified')
+    let buftype = getbufvar(bufnr, 'buftype')
 
-    for i in range(tabpagenr('$'))
-        let tab = i + 1
-        let winnr = tabpagewinnr(tab)
-        let buflist = tabpagebuflist(tab)
-        let bufnr = buflist[winnr - 1]
-        let bufname = bufname(bufnr)
-        let bufmodified = getbufvar(bufnr, '&mod')
+    let label = '%' . tabnr . 'T'
+    let label .= (tabnr == tabpagenr() ? s:HiSection('SelectedTab') : s:HiSection('NormalTab'))
+    let label .= ' ' . tabnr . ':'
 
-        let s .= '%' . tab . 'T'
-        let s .= (tab == tabpagenr() ? s:HiSection('SelectedTab') : s:HiSection('NormalTab'))
-        let s .= ' ' . tab .':'
-        let s .= (bufname != '' ? ' ' . fnamemodify(bufname, ':p:~:.') . ' ' : '[No Name] ')
-
-        if bufmodified
-            let s .= '[+] '
+    if buftype == 'nofile'
+        if bufname =~ '\/.'
+            let bufname = substitute(bufname, '.*\/\ze.', '', '')
         endif
-    endfor
+    else
+        let bufname = fnamemodify(bufname, ':p:~:.')
+        if bufname[0] == '~' || bufname[0] == '/'
+            let bufname = pathshorten(bufname)
+        elseif strlen(bufname) > 30
+            let bufname = fnamemodify(bufname, ':t')
+        endif
 
-    let s .= s:HiSection('FillTab')
-    if get(g:, 'statusline_show_tabline_close_button', 0)
-        let s .= '%=%999X X '
+        if exists('*WebDevIconsGetFileTypeSymbol')
+            let bufname .= WebDevIconsGetFileTypeSymbol() . ' '
+        endif
     endif
 
-    return s
+    if bufname == ''
+        let bufname = '[No Name]'
+    endif
+
+    let label .= ' ' . bufname . ' '
+
+    if bufmodified
+        let label .= '[+] '
+    endif
+
+    return label
+endfunction
+
+function! Tabline() abort
+    let st = s:HiSection('TabTitle') . ' TABS %*'
+
+    let tab_count = tabpagenr('$')
+    let max_tab_count = s:displayable_tab_count
+
+    if tab_count <= max_tab_count
+        for i in range(1, tab_count)
+            let st .= s:TabLabel(i)
+        endfor
+    else
+        let tabs = range(1, tab_count)
+        let current_tab = tabpagenr()
+        let current_index = current_tab - 1
+
+        if current_tab == 1
+            let start_index = 0
+            let end_index = start_index + (max_tab_count - 1)
+        elseif current_tab == tab_count
+            let end_index = -1
+            let start_index = end_index - (max_tab_count - 1)
+        else
+            let start_index = current_index - (max_tab_count - 2)
+            let start_index = max([start_index, 0])
+            let end_index = start_index + (max_tab_count - 1)
+        endif
+
+        if start_index > 0
+            let st .= s:TabPlaceholder(start_index + 1)
+        endif
+        
+        let displayable_tabs = tabs[start_index:end_index]
+
+        for i in displayable_tabs
+            let st .= s:TabLabel(i)
+        endfor
+
+        if end_index < (tab_count - 1)
+            let st .= s:TabPlaceholder(end_index + 1)
+        endif
+    endif
+
+    let st .= s:HiSection('FillTab')
+    if get(g:, 'statusline_show_tabline_close_button', 0) 
+        let st .= s:HiSection('CloseButton') . '%=%999X X '
+    endif
+
+    return st
 endfunction
 
 setglobal tabline=%!Tabline()
