@@ -37,7 +37,7 @@ let s:type_dict = {
             \ 'netrw':         'NetrwTree',
             \ 'nerdtree':      'NERDTree',
             \ 'startify':      'Startify',
-            \ 'vim-plug':      'VimPlug',
+            \ 'vim-plug':      'Plug',
             \ 'help':          'HELP',
             \ 'qf':            '%q %{get(w:, "quickfix_title", "")}',
             \ 'quickfix':      '%q %{get(w:, "quickfix_title", "")}',
@@ -71,6 +71,11 @@ endfunction
 function! s:GetTabsOrSpacesStatus(bufnum) abort
     let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(a:bufnum, '&shiftwidth')
     return (getbufvar(a:bufnum, '&expandtab') ? 'Spaces' : 'Tab Size') . ': ' . shiftwidth
+endfunction
+
+function! s:GetTabsOrSpacesShortStatus(bufnum) abort
+    let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(a:bufnum, '&shiftwidth')
+    return printf(getbufvar(a:bufnum, '&expandtab') ? '[S:%d]' : '[T:%d]', shiftwidth)
 endfunction
 
 function! s:GetGitBranch() abort
@@ -155,6 +160,33 @@ function! s:ActiveStatusLine(winnum) abort
     if s:ShowMoreFileInfo(type, name)
         let right_ary = []
 
+        let show_tabs_spaces = !s:IsSmallWindow(a:winnum)
+        let is_short_status = show_tabs_spaces && &paste && &spell
+
+        " paste status
+        if &paste
+            call add(right_ary, is_short_status ? '[P]' : 'PASTE')
+        endif
+
+        " spell status
+        if &spell
+            call add(right_ary, printf(is_short_status ? '[%s]' : 'SPELL [%s]', toupper(substitute(&spelllang, ',', '/', 'g'))))
+        endif
+
+        " tabs/spaces
+        if is_short_status
+            call add(right_ary, s:GetTabsOrSpacesShortStatus(bufnum))
+        elseif show_tabs_spaces
+            call add(right_ary, s:GetTabsOrSpacesStatus(bufnum))
+        endif
+
+        " file type
+        if exists('*WebDevIconsGetFileTypeSymbol')
+            call add(right_ary, WebDevIconsGetFileTypeSymbol() . ' ')
+        elseif strlen(type)
+            call add(right_ary, type)
+        endif
+
         " file encoding
         let encoding = getbufvar(bufnum, '&fileencoding')
         if empty(encoding)
@@ -167,34 +199,12 @@ function! s:ActiveStatusLine(winnum) abort
 
         " file format
         if exists('*WebDevIconsGetFileFormatSymbol')
-            call add(right_ary, WebDevIconsGetFileFormatSymbol())
+            call add(right_ary, WebDevIconsGetFileFormatSymbol() . ' ')
         else
             let format  = getbufvar(bufnum, '&fileformat')
             if strlen(format) && format !=# 'unix'
                 call add(right_ary, format)
             endif
-        endif
-
-        " tabs/spaces
-        if !s:IsSmallWindow(a:winnum) && !(&spell && &paste)
-            call add(right_ary, s:GetTabsOrSpacesStatus(bufnum))
-        endif
-
-        " file type
-        if exists('*WebDevIconsGetFileTypeSymbol')
-            call add(right_ary, WebDevIconsGetFileTypeSymbol())
-        elseif strlen(type)
-            call add(right_ary, type)
-        endif
-
-        " spell status
-        if &spell
-            call add(right_ary, printf('SPELL [%s]', toupper(substitute(&spelllang, ',', '/', 'g'))))
-        endif
-
-        " paste status
-        if &paste
-            call add(right_ary, 'PASTE')
         endif
 
         let stl .= join(right_ary, printf(' %s ', s:symbols.left))
