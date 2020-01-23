@@ -251,8 +251,10 @@ function! s:GetAlternativeStatus(winnum, bufnum) abort
         let stl = ' ' . get(s:type_dict, type)
 
         if type ==? 'help'
-            let stl .= ' %<' . s:GetFileName(a:winnum, a:bufnum) . ' '
+            let stl .= ' %<' . s:GetFileName(a:winnum, a:bufnum)
         endif
+
+        let stl .= ' '
     endif
 
     return stl
