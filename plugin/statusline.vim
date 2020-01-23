@@ -166,9 +166,13 @@ function! s:ActiveStatusLine(winnum) abort
         endif
 
         " file format
-        let format  = getbufvar(bufnum, '&fileformat')
-        if strlen(format) && format !=# 'unix'
-            call add(right_ary, format)
+        if exists('*WebDevIconsGetFileFormatSymbol')
+            call add(right_ary, WebDevIconsGetFileFormatSymbol())
+        else
+            let format  = getbufvar(bufnum, '&fileformat')
+            if strlen(format) && format !=# 'unix'
+                call add(right_ary, format)
+            endif
         endif
 
         " tabs/spaces
@@ -177,7 +181,9 @@ function! s:ActiveStatusLine(winnum) abort
         endif
 
         " file type
-        if strlen(type)
+        if exists('*WebDevIconsGetFileTypeSymbol')
+            call add(right_ary, WebDevIconsGetFileTypeSymbol())
+        elseif strlen(type)
             call add(right_ary, type)
         endif
 
