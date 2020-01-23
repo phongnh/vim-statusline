@@ -106,7 +106,7 @@ function! s:FormatBranch(branch, filename, winwidth) abort
     endif
 
     if !s:IsDisplayableBranch(branch, a:filename, a:winwidth) && strlen(branch) > 30
-        let branch = branch[:26] + '…'
+        let branch = strcharpart(branch, 0, 29) . '…'
     endif
 
     if !s:IsDisplayableBranch(branch, a:filename, a:winwidth)
