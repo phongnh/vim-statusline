@@ -52,6 +52,9 @@ let g:statusline_colors = {
             \ 'InactiveStatus': 'StatusLineNC',
             \ 'FillStatus': 'LineNr',
             \ 'RightStatus': 'StatusLine',
+            \ 'SelectedTab': 'TabLineSel',
+            \ 'NormalTab': 'TabLine',
+            \ 'FillTab': 'LineNr',
             \ }
 
 function! s:HiSection(section) abort
@@ -340,9 +343,43 @@ endfunction
 
 command! RefreshStatusLine :call s:RefreshStatusLine()
 
+function! Tabline() abort
+    let s = ''
+
+    let num_of_tabs = tabpagenr('$')
+
+    for i in range(tabpagenr('$'))
+        let tab = i + 1
+        let winnr = tabpagewinnr(tab)
+        let buflist = tabpagebuflist(tab)
+        let bufnr = buflist[winnr - 1]
+        let bufname = bufname(bufnr)
+        let bufmodified = getbufvar(bufnr, '&mod')
+
+        let s .= '%' . tab . 'T'
+        let s .= (tab == tabpagenr() ? s:HiSection('SelectedTab') : s:HiSection('NormalTab'))
+        let s .= ' ' . tab .':'
+        let s .= (bufname != '' ? ' ' . fnamemodify(bufname, ':p:~:.') . ' ' : '[No Name] ')
+
+        if bufmodified
+            let s .= '[+] '
+        endif
+    endfor
+
+    let s .= s:HiSection('FillTab')
+    if get(g:, 'statusline_show_tabline_close_button', 0)
+        let s .= '%=%999X X '
+    endif
+
+    return s
+endfunction
+
+setglobal tabline=%!Tabline()
+
 augroup VimStatusline
     autocmd!
     autocmd VimEnter,WinEnter,BufWinEnter,CmdWinEnter,CmdlineEnter * call <SID>RefreshStatusLine()
+    autocmd VimEnter * setglobal tabline=%!Tabline()
 augroup END
 
 " CtrlP Integration
