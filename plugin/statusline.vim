@@ -130,6 +130,9 @@ function! s:ActiveStatusLine(winnum) abort
         let left_ary = []
         let filename = s:GetFileNameAndFlags(a:winnum, bufnum)
 
+        " file name %f
+        call add(left_ary, filename)
+
         " git branch
         if !s:IsSmallWindow(a:winnum) && get(g:, 'statusline_show_git_branch', 1)
             let branch = s:GetGitBranch()
@@ -142,9 +145,6 @@ function! s:ActiveStatusLine(winnum) abort
                 call add(left_ary, branch)
             endif
         endif
-
-        " file name %f
-        call add(left_ary, filename)
 
         let stl .= ' %<' . join(left_ary, printf(' %s ', s:symbols.right))
     endif
