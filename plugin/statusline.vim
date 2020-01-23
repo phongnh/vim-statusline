@@ -73,6 +73,27 @@ function! s:GetTabsOrSpacesStatus(bufnum) abort
     return (getbufvar(a:bufnum, '&expandtab') ? 'Spaces' : 'Tab Size') . ': ' . shiftwidth
 endfunction
 
+function! s:GetGitBranch() abort
+    let branch = ''
+
+    if exists('*fugitive#head')
+        let branch = fugitive#head()
+
+        if empty(branch) && exists('*fugitive#detect') && !exists('b:git_dir')
+            call fugitive#detect(getcwd())
+            let branch = fugitive#head()
+        endif
+    elseif exists(':Gina') == 2
+        let branch = gina#component#repo#branch()
+    endif
+
+    return branch
+endfunction
+
+function! s:IsDisplayableBranch(branch, filename, winwidth) abort
+    return strlen(a:branch) < 51 && strlen(a:branch) < a:winwidth && (strlen(a:branch) + strlen(a:filename) + 3) < a:winwidth
+endfunction
+
 function! s:ActiveStatusLine(winnum) abort
     let bufnum = winbufnr(a:winnum)
 
@@ -84,22 +105,18 @@ function! s:ActiveStatusLine(winnum) abort
 
         " git branch
         if !s:IsSmallWindow(a:winnum) && get(g:, 'statusline_show_git_branch', 1)
-            let head = ''
-            if exists('*fugitive#head')
-                let head = fugitive#head()
+            let branch = s:GetGitBranch()
 
-                if empty(head) && exists('*fugitive#detect') && !exists('b:git_dir')
-                    call fugitive#detect(getcwd())
-                    let head = fugitive#head()
+            if strlen(branch)
+                let winwidth = winwidth(a:winnum) - 2
+
+                if !s:IsDisplayableBranch(branch, filename, winwidth)
+                    let branch = split(branch, '/')[-1]
                 endif
-            elseif exists(':Gina') == 2
-                let head = gina#component#repo#branch()
-            endif
 
-            let winwidth = winwidth(a:winnum) - 2
-            let len = strlen(head)
-            if len > 0 && len < 51 && len < winwidth && (len + strlen(filename) + 3) < winwidth
-                call add(left_ary, head)
+                if s:IsDisplayableBranch(branch, filename, winwidth)
+                    call add(left_ary, branch)
+                endif
             endif
         endif
 
@@ -147,7 +164,7 @@ function! s:ActiveStatusLine(winnum) abort
         endif
 
         " spell status
-        if &spell 
+        if &spell
             call add(right_ary, printf('SPELL [%s]', toupper(substitute(&spelllang, ',', '/', 'g'))))
         endif
 
