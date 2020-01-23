@@ -91,7 +91,29 @@ function! s:GetGitBranch() abort
 endfunction
 
 function! s:IsDisplayableBranch(branch, filename, winwidth) abort
-    return strlen(a:branch) < 51 && strlen(a:branch) < a:winwidth && (strlen(a:branch) + strlen(a:filename) + 3) < a:winwidth
+    return strlen(a:branch) < a:winwidth && (strlen(a:branch) + strlen(a:filename) + 3) < a:winwidth
+endfunction
+
+function! s:FormatBranch(branch, filename, winwidth) abort
+    let branch = a:branch
+
+    if !s:IsDisplayableBranch(branch, a:filename, a:winwidth)
+        let branch = s:ShortenFileName(branch)
+    endif
+
+    if !s:IsDisplayableBranch(branch, a:filename, a:winwidth)
+        let branch = split(branch, '/')[-1]
+    endif
+
+    if !s:IsDisplayableBranch(branch, a:filename, a:winwidth) && strlen(branch) > 30
+        let branch = branch[:26] + '…'
+    endif
+
+    if !s:IsDisplayableBranch(branch, a:filename, a:winwidth)
+        let branch = '⎇'
+    endif
+
+    return branch
 endfunction
 
 function! s:ActiveStatusLine(winnum) abort
@@ -108,15 +130,11 @@ function! s:ActiveStatusLine(winnum) abort
             let branch = s:GetGitBranch()
 
             if strlen(branch)
-                let winwidth = winwidth(a:winnum) - 2
+                let branch = s:FormatBranch(branch, filename, winwidth(a:winnum) - 2)
+            endif
 
-                if !s:IsDisplayableBranch(branch, filename, winwidth)
-                    let branch = split(branch, '/')[-1]
-                endif
-
-                if s:IsDisplayableBranch(branch, filename, winwidth)
-                    call add(left_ary, branch)
-                endif
+            if strlen(branch)
+                call add(left_ary, branch)
             endif
         endif
 
@@ -217,6 +235,10 @@ function! s:GetFileNameAndFlags(winnum, bufnum) abort
     return s:GetFileName(a:winnum, a:bufnum) . s:GetFileFlags(a:bufnum)
 endfunction
 
+function! s:ShortenFileName(filename) abort
+    return substitute(a:filename, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
+endfunction
+
 function! s:GetFileName(winnum, bufnum) abort
     let name = bufname(a:bufnum)
 
@@ -227,7 +249,7 @@ function! s:GetFileName(winnum, bufnum) abort
         let winwidth = winwidth(a:winnum) - 2
 
         if strlen(name) > winwidth
-            let name = substitute(name, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
+            let name = s:ShortenFileName(name)
 
             if strlen(name) > winwidth
                 let name = fnamemodify(name, ':t')
