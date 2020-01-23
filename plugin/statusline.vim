@@ -47,15 +47,25 @@ let s:type_dict = {
             \ 'fugitiveblame': 'FugitiveBlame',
             \ }
 
+let g:statusline_colors = {
+            \ 'LeftStatus': 'StatusLine',
+            \ 'InactiveStatus': 'StatusLineNC',
+            \ 'FillStatus': 'LineNr',
+            \ 'RightStatus': 'StatusLine',
+            \ }
+
+function! s:HiSection(section) abort
+    return printf('%%#%s#', g:statusline_colors[a:section])
+endfunction
+
 function! StatusLine(winnum) abort
     if a:winnum == winnr()
-        let stl = ''
-
+        let stl = s:HiSection('LeftStatus')
         let stl .= s:GetClipboardStatus()
-
         let stl .= s:ActiveStatusLine(a:winnum)
     else
-        let stl = s:InactiveStatusLine(a:winnum)
+        let stl = s:HiSection('InactiveStatus')
+        let stl .= s:InactiveStatusLine(a:winnum)
     endif
 
     return stl
@@ -146,18 +156,21 @@ function! s:ActiveStatusLine(winnum) abort
             endif
         endif
 
-        let stl .= ' %<' . join(left_ary, printf(' %s ', s:symbols.right))
+        let stl .= ' %<' . join(left_ary, printf(' %s ', s:symbols.right)) . ' '
     endif
 
     let stl .= '%*'
 
-    " right side
-    let stl .= ' %=%<'
+    " fill
+    let stl .= s:HiSection('FillStatus') . ' %='
 
     let type = s:GetBufferType(bufnum)
     let name = s:GetBufferName(bufnum)
 
+    " right side
     if s:ShowMoreFileInfo(type, name)
+        let stl .= s:HiSection('RightStatus') . ' %<'
+
         let right_ary = []
 
         let show_tabs_spaces = !s:IsSmallWindow(a:winnum)
@@ -207,10 +220,8 @@ function! s:ActiveStatusLine(winnum) abort
             endif
         endif
 
-        let stl .= join(right_ary, printf(' %s ', s:symbols.left))
+        let stl .= join(right_ary, printf(' %s ', s:symbols.left)) . ' '
     endif
-
-    let stl .= ' '
 
     return stl
 endfunction
@@ -222,7 +233,7 @@ function! s:InactiveStatusLine(winnum) abort
 
     if empty(stl)
         " file name %f
-        let stl .=  printf(' %%<%s %s %s', s:symbols.left, s:GetFileNameAndFlags(a:winnum, bufnum), s:symbols.right)
+        let stl .=  printf(' %%<%s %s %s ', s:symbols.left, s:GetFileNameAndFlags(a:winnum, bufnum), s:symbols.right)
     endif
 
     return stl
@@ -235,12 +246,12 @@ function! s:GetAlternativeStatus(winnum, bufnum) abort
     let stl = ''
 
     if has_key(s:name_dict, name)
-        let stl = ' ' . get(s:name_dict, name)
+        let stl = ' ' . get(s:name_dict, name) . ' '
     elseif has_key(s:type_dict, type)
         let stl = ' ' . get(s:type_dict, type)
 
         if type ==? 'help'
-            let stl .= ' %<' . s:GetFileName(a:winnum, a:bufnum)
+            let stl .= ' %<' . s:GetFileName(a:winnum, a:bufnum) . ' '
         endif
     endif
 
