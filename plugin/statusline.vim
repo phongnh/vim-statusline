@@ -8,6 +8,11 @@ endif
 
 let g:loaded_vim_statusline = 1
 
+" Settings
+let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
+let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
+let g:statusline_show_file_size        = get(g:, 'statusline_show_file_size', 1)
+
 " Window width
 let s:small_window_width = 60
 
@@ -19,8 +24,8 @@ let s:symbols = {
             \ 'clipboard': '@',
             \ 'left':      '«',
             \ 'right':     '»',
-            \ 'readonly':  'RO',
-            \ 'ellipsis':   '…',
+            \ 'readonly':  '',
+            \ 'ellipsis':  '…',
             \ }
 
 " Alternate status dictionaries
@@ -51,6 +56,7 @@ let s:type_dict = {
             \ 'fugitiveblame': 'FugitiveBlame',
             \ }
 
+" Hightlight mappings
 let g:statusline_colors = {
             \ 'LeftStatus':     'StatusLine',
             \ 'InactiveStatus': 'StatusLineNC',
@@ -141,6 +147,23 @@ function! s:FormatBranch(branch, filename, winwidth) abort
     return branch
 endfunction
 
+" Copied from https://github.com/ahmedelgabri/dotfiles/blob/master/files/vim/.vim/autoload/statusline.vim
+function! s:FileSize() abort
+    let l:size = getfsize(expand('%'))
+    if l:size == 0 || l:size == -1 || l:size == -2
+        return ''
+    endif
+    if l:size < 1024
+        return l:size . ' bytes'
+    elseif l:size < 1024 * 1024
+        return printf('%.1f', l:size / 1024.0) . 'k'
+    elseif l:size < 1024 * 1024 * 1024
+        return printf('%.1f', l:size / 1024.0 / 1024.0) . 'm'
+    else
+        return printf('%.1f', l:size / 1024.0 / 1024.0 / 1024.0) . 'g'
+    endif
+endfunction
+
 function! s:ActiveStatusLine(winnum) abort
     let bufnum = winbufnr(a:winnum)
 
@@ -154,7 +177,7 @@ function! s:ActiveStatusLine(winnum) abort
         call add(left_ary, filename)
 
         " git branch
-        if !s:IsSmallWindow(a:winnum) && get(g:, 'statusline_show_git_branch', 1)
+        if !s:IsSmallWindow(a:winnum) && g:statusline_show_git_branch
             let branch = s:GetGitBranch()
 
             if strlen(branch)
@@ -182,6 +205,10 @@ function! s:ActiveStatusLine(winnum) abort
         let stl .= s:HiSection('RightStatus') . ' %<'
 
         let right_ary = []
+
+        if g:statusline_show_file_size
+            call add(right_ary, s:FileSize())
+        endif
 
         let show_tabs_spaces = !s:IsSmallWindow(a:winnum)
         let is_short_status = show_tabs_spaces && &paste && &spell
@@ -315,7 +342,7 @@ function! s:GetFileFlags(bufnum)
     endif
 
     if getbufvar(a:bufnum, '&readonly')
-        let flags .= ' ' . s:symbols.readonly
+        let flags .= ' ' . s:symbols.readonly . ' '
     endif
 
     return flags
@@ -441,7 +468,7 @@ function! Tabline() abort
     endif
 
     let st .= s:HiSection('FillTab')
-    if get(g:, 'statusline_show_tabline_close_button', 0) 
+    if g:statusline_show_tab_close_button
         let st .= s:HiSection('CloseButton') . '%=%999X X '
     endif
 
