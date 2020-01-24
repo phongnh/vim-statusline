@@ -313,14 +313,19 @@ function! s:GetFileName(winnum, bufnum) abort
         let name = '[No Name]'
     else
         let name = fnamemodify(name, ':~:.')
+
+        if s:IsSmallWindow(a:winnum)
+            return fnamemodify(name, ':t')
+        endif
+
         let winwidth = winwidth(a:winnum) - 2
 
-        if strlen(name) > winwidth
+        if name[0] == '~' || name[0] == '/' || strlen(name) > winwidth
             let name = s:ShortenFileName(name)
+        endif
 
-            if strlen(name) > winwidth
-                let name = fnamemodify(name, ':t')
-            endif
+        if strlen(name) > winwidth
+            let name = fnamemodify(name, ':t')
         endif
     endif
 
