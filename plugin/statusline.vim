@@ -13,6 +13,9 @@ let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1
 let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
 let g:statusline_show_file_size        = get(g:, 'statusline_show_file_size', 1)
 
+" Disable NERDTree statusline
+let g:NERDTreeStatusline = -1
+
 " Window width
 let s:small_window_width = 60
 
@@ -84,16 +87,16 @@ function! s:HiSection(section) abort
     return printf('%%#%s#', g:statusline_colors[a:section])
 endfunction
 
-function! StatusLine(winnum) abort
-    if a:winnum == winnr()
-        let stl = s:HiSection('LeftStatus')
-        let stl .= s:ActiveStatusLine(a:winnum)
-    else
-        let stl = s:HiSection('InactiveStatus')
-        let stl .= s:InactiveStatusLine(a:winnum)
+function! s:GetCurrentDir() abort
+    let dir = fnamemodify(getcwd(), ':~:.')
+    if empty(dir)
+        let dir = getcwd()
     endif
+    return dir
+endfunction
 
-    return stl
+function! s:IsSmallWindow(winnum) abort
+    return winwidth(a:winnum) < s:small_window_width
 endfunction
 
 function! s:GetClipboardStatus() abort
@@ -103,14 +106,73 @@ function! s:GetClipboardStatus() abort
     return ''
 endfunction
 
-function! s:GetTabsOrSpacesStatus(bufnum) abort
-    let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(a:bufnum, '&shiftwidth')
-    return printf(getbufvar(a:bufnum, '&expandtab') ? 'Spaces: %d' : 'Tab Size: %d', shiftwidth)
+function! s:GetBufferType(bufnum) abort
+    let type = getbufvar(a:bufnum, '&filetype')
+
+    if empty(type)
+        let type = getbufvar(a:bufnum, '&buftype')
+    endif
+
+    return type
 endfunction
 
-function! s:GetTabsOrSpacesShortStatus(bufnum) abort
-    let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(a:bufnum, '&shiftwidth')
-    return printf(getbufvar(a:bufnum, '&expandtab') ? '[S:%d]' : '[T:%d]', shiftwidth)
+function! s:ShortenFileName(filename) abort
+    if exists('*pathshorten')
+        return pathshorten(a:filename)
+    else
+        return substitute(a:filename, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
+    endif
+endfunction
+
+function! s:GetFileName(winnum, bufnum) abort
+    let name = bufname(a:bufnum)
+
+    if empty(name)
+        let name = '[No Name]'
+    else
+        let name = fnamemodify(name, ':~:.')
+
+        if s:IsSmallWindow(a:winnum)
+            return fnamemodify(name, ':t')
+        endif
+
+        let winwidth = winwidth(a:winnum) - 2
+
+        if name[0] == '~' || name[0] == '/' || strlen(name) > winwidth
+            let name = s:ShortenFileName(name)
+        endif
+
+        if strlen(name) > winwidth
+            let name = fnamemodify(name, ':t')
+        endif
+    endif
+
+    return name
+endfunction
+
+function! s:GetFileFlags(bufnum)
+    let flags = ''
+
+    " file modified and modifiable
+    if getbufvar(a:bufnum, '&modified')
+        if !getbufvar(a:bufnum, '&modifiable')
+            let flags .= '[-+]'
+        else
+            let flags .= '[+]'
+        endif
+    elseif !getbufvar(a:bufnum, '&modifiable')
+        let flags .= '[-]'
+    endif
+
+    if getbufvar(a:bufnum, '&readonly')
+        let flags .= ' ' . s:symbols.readonly . ' '
+    endif
+
+    return flags
+endfunction
+
+function! s:GetFileNameAndFlags(winnum, bufnum) abort
+    return s:GetFileName(a:winnum, a:bufnum) . s:GetFileFlags(a:bufnum)
 endfunction
 
 function! s:GetGitBranch() abort
@@ -154,6 +216,16 @@ function! s:FormatBranch(branch, filename, winwidth) abort
     endif
 
     return branch
+endfunction
+
+function! s:GetTabsOrSpacesStatus(bufnum) abort
+    let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(a:bufnum, '&shiftwidth')
+    return printf(getbufvar(a:bufnum, '&expandtab') ? 'Spaces: %d' : 'Tab Size: %d', shiftwidth)
+endfunction
+
+function! s:GetTabsOrSpacesShortStatus(bufnum) abort
+    let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(a:bufnum, '&shiftwidth')
+    return printf(getbufvar(a:bufnum, '&expandtab') ? '[S:%d]' : '[T:%d]', shiftwidth)
 endfunction
 
 " Copied from https://github.com/ahmedelgabri/dotfiles/blob/master/files/vim/.vim/autoload/statusline.vim
@@ -234,6 +306,27 @@ function! s:GetFileInfo(bufnum) abort
     endif
 
     return result
+endfunction
+
+function! s:GetAlternativeStatus(winnum, bufnum) abort
+    let type = s:GetBufferType(a:bufnum)
+    let name = fnamemodify(bufname(a:bufnum), ':t')
+
+    let stl = ''
+
+    if has_key(s:name_dict, name)
+        let stl = ' ' . get(s:name_dict, name) . ' '
+    elseif has_key(s:type_dict, type)
+        let stl = ' ' . get(s:type_dict, type)
+
+        if type ==? 'help'
+            let stl .= ' %<' . s:GetFileName(a:winnum, a:bufnum)
+        endif
+
+        let stl .= ' '
+    endif
+
+    return stl
 endfunction
 
 function! s:ActiveStatusLine(winnum) abort
@@ -341,104 +434,21 @@ function! s:InactiveStatusLine(winnum) abort
     return stl
 endfunction
 
-function! s:GetAlternativeStatus(winnum, bufnum) abort
-    let type = s:GetBufferType(a:bufnum)
-    let name = fnamemodify(bufname(a:bufnum), ':t')
-
-    let stl = ''
-
-    if has_key(s:name_dict, name)
-        let stl = ' ' . get(s:name_dict, name) . ' '
-    elseif has_key(s:type_dict, type)
-        let stl = ' ' . get(s:type_dict, type)
-
-        if type ==? 'help'
-            let stl .= ' %<' . s:GetFileName(a:winnum, a:bufnum)
-        endif
-
-        let stl .= ' '
+function! StatusLine(current, winnum) abort
+    if a:current
+        let stl = s:HiSection('LeftStatus')
+        let stl .= s:ActiveStatusLine(a:winnum)
+    else
+        let stl = s:HiSection('InactiveStatus')
+        let stl .= s:InactiveStatusLine(a:winnum)
     endif
 
     return stl
 endfunction
 
-function! s:GetFileNameAndFlags(winnum, bufnum) abort
-    return s:GetFileName(a:winnum, a:bufnum) . s:GetFileFlags(a:bufnum)
+function! AutoStatusLine(current, winid)
+    return StatusLine(a:current, win_id2win(a:winid))
 endfunction
-
-function! s:ShortenFileName(filename) abort
-    " return substitute(a:filename, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
-    return pathshorten(a:filename)
-endfunction
-
-function! s:GetFileName(winnum, bufnum) abort
-    let name = bufname(a:bufnum)
-
-    if empty(name)
-        let name = '[No Name]'
-    else
-        let name = fnamemodify(name, ':~:.')
-
-        if s:IsSmallWindow(a:winnum)
-            return fnamemodify(name, ':t')
-        endif
-
-        let winwidth = winwidth(a:winnum) - 2
-
-        if name[0] == '~' || name[0] == '/' || strlen(name) > winwidth
-            let name = s:ShortenFileName(name)
-        endif
-
-        if strlen(name) > winwidth
-            let name = fnamemodify(name, ':t')
-        endif
-    endif
-
-    return name
-endfunction
-
-function! s:GetFileFlags(bufnum)
-    let flags = ''
-
-    " file modified and modifiable
-    if getbufvar(a:bufnum, '&modified')
-        if !getbufvar(a:bufnum, '&modifiable')
-            let flags .= '[-+]'
-        else
-            let flags .= '[+]'
-        endif
-    elseif !getbufvar(a:bufnum, '&modifiable')
-        let flags .= '[-]'
-    endif
-
-    if getbufvar(a:bufnum, '&readonly')
-        let flags .= ' ' . s:symbols.readonly . ' '
-    endif
-
-    return flags
-endfunction
-
-function! s:GetBufferType(bufnum) abort
-    let type = getbufvar(a:bufnum, '&filetype')
-
-    if empty(type)
-        let type = getbufvar(a:bufnum, '&buftype')
-    endif
-
-    return type
-endfunction
-
-function! s:IsSmallWindow(winnum) abort
-    return winwidth(a:winnum) < s:small_window_width
-endfunction
-
-function! s:RefreshStatusLine() abort
-    for nr in range(1, winnr('$'))
-        call setwinvar(nr, '&statusline', '%!StatusLine(' . nr . ')')
-    endfor
-endfunction
-
-command! RefreshStatusLine :call s:RefreshStatusLine()
 
 function! s:TabPlaceholder(tab)
     return s:HiSection('TabPlaceholder') . printf('%%%d  %s %%*', a:tab, s:symbols.ellipsis)
@@ -464,7 +474,7 @@ function! s:TabLabel(tabnr) abort
     else
         let bufname = fnamemodify(bufname, ':p:~:.')
         if bufname[0] == '~' || bufname[0] == '/'
-            let bufname = pathshorten(bufname)
+            let bufname = s:ShortenFileName(bufname)
         elseif strlen(bufname) > 30
             let bufname = fnamemodify(bufname, ':t')
         endif
@@ -537,13 +547,37 @@ function! Tabline() abort
     return st
 endfunction
 
-setglobal tabline=%!Tabline()
+function! s:RefreshStatusLine() abort
+    for nr in range(1, winnr('$'))
+        if nr == winnr()
+            call setwinvar(nr, '&statusline', '%!StatusLine(1,' . nr . ')')
+        else
+            call setwinvar(nr, '&statusline', '%!StatusLine(0,' . nr . ')')
+        endif
+    endfor
+endfunction
 
-augroup VimStatusline
-    autocmd!
-    autocmd VimEnter,WinEnter,BufWinEnter,CmdWinEnter,CmdlineEnter * call <SID>RefreshStatusLine()
-    autocmd VimEnter * setglobal tabline=%!Tabline()
-augroup END
+command! RefreshStatusLine :call s:RefreshStatusLine()
+
+function! s:Init() abort
+    execute 'set statusline=%!AutoStatusLine(1,' . win_getid() . ')'
+    augroup VimAutoStatusline
+        autocmd!
+        autocmd BufWinEnter,WinEnter * execute 'setlocal statusline=%!AutoStatusLine(1,' . win_getid('#') . ')'
+        autocmd WinLeave * execute 'setlocal statusline=%!AutoStatusLine(0,' . win_getid() . ')'
+        if exists('#CmdlineLeave') && exists('#CmdWinEnter') && exists('#CmdlineEnter')
+            autocmd CmdlineLeave : execute 'setlocal statusline=%!AutoStatusLine(1,' . win_getid() . ')'
+            autocmd CmdWinEnter  : execute 'setlocal statusline=%!AutoStatusLine(1,0)'
+            autocmd CmdlineEnter : execute 'setlocal statusline=%!AutoStatusLine(0,' . win_getid() . ')'
+        endif
+    augroup END
+
+    if exists('+tabline')
+        set tabline=%!Tabline()
+    endif
+endfunction
+
+call s:Init()
 
 " CtrlP Integration
 let g:ctrlp_status_func = {
@@ -572,14 +606,6 @@ function! TagbarStatusFunc(current, sort, fname, flags, ...) abort
     else
         return printf(' [%s] [%s] %s %s', a:sort, join(a:flags, ''), s:symbols.right, a:fname)
     endif
-endfunction
-
-function! s:GetCurrentDir() abort
-    let dir = fnamemodify(getcwd(), ':~:.')
-    if empty(dir)
-        let dir = getcwd()
-    endif
-    return dir
 endfunction
 
 " ZoomWin Integration
