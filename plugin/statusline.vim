@@ -32,20 +32,21 @@ let s:symbols = {
             \ }
 
 " Alternate status dictionaries
-let s:name_dict = {
+let s:filename_modes = {
+            \ 'ControlP':             'CtrlP',
             \ '__Tagbar__':           'Tagbar',
             \ '__Gundo__':            'Gundo',
             \ '__Gundo_Preview__':    'Gundo Preview',
             \ '[BufExplorer]':        'BufExplorer',
             \ 'NERD_tree':            'NERDTree',
             \ 'NERD_tree_1':          'NERDTree',
+            \ '[Command Line]':       'Command Line',
+            \ '[Plugins]':            'Plugins',
             \ '__committia_status__': 'Committia Status',
             \ '__committia_diff__':   'Committia Diff',
-            \ '[Plugins]':            'Plugins',
-            \ '[Command Line]':       'Command Line',
             \ }
 
-let s:type_dict = {
+let s:filetype_modes = {
             \ 'netrw':         'NetrwTree',
             \ 'nerdtree':      'NERDTree',
             \ 'startify':      'Startify',
@@ -57,6 +58,9 @@ let s:type_dict = {
             \ 'gedoc':         'GeDoc',
             \ 'gitcommit':     'Commit Message',
             \ 'fugitiveblame': 'FugitiveBlame',
+            \ 'agit':          'Agit',
+            \ 'agit_diff':     'Agit',
+            \ 'agit_stat':     'Agit',
             \ }
 
 " Hightlight mappings
@@ -314,10 +318,10 @@ function! s:GetAlternativeStatus(winnum, bufnum) abort
 
     let stl = ''
 
-    if has_key(s:name_dict, name)
-        let stl = ' ' . get(s:name_dict, name) . ' '
-    elseif has_key(s:type_dict, type)
-        let stl = ' ' . get(s:type_dict, type)
+    if has_key(s:filename_modes, name)
+        let stl = ' ' . get(s:filename_modes, name) . ' '
+    elseif has_key(s:filetype_modes, type)
+        let stl = ' ' . get(s:filetype_modes, type)
 
         if type ==? 'help'
             let stl .= ' %<' . s:GetFileName(a:winnum, a:bufnum)
