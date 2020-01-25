@@ -70,6 +70,16 @@ let g:statusline_colors = {
             \ 'CloseButton':    'CursorLineNr',
             \ }
 
+if exists('*trim')
+    function! s:strip(str) abort
+        return trim(a:str)
+    endfunction
+else
+    function! s:strip(str) abort
+        return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
+    endfunction
+endif
+
 function! s:HiSection(section) abort
     return printf('%%#%s#', g:statusline_colors[a:section])
 endfunction
@@ -77,7 +87,6 @@ endfunction
 function! StatusLine(winnum) abort
     if a:winnum == winnr()
         let stl = s:HiSection('LeftStatus')
-        let stl .= s:GetClipboardStatus()
         let stl .= s:ActiveStatusLine(a:winnum)
     else
         let stl = s:HiSection('InactiveStatus')
@@ -96,7 +105,7 @@ endfunction
 
 function! s:GetTabsOrSpacesStatus(bufnum) abort
     let shiftwidth = exists('*shiftwidth') ? shiftwidth() : getbufvar(a:bufnum, '&shiftwidth')
-    return (getbufvar(a:bufnum, '&expandtab') ? 'Spaces' : 'Tab Size') . ': ' . shiftwidth
+    return printf(getbufvar(a:bufnum, '&expandtab') ? 'Spaces: %d' : 'Tab Size: %d', shiftwidth)
 endfunction
 
 function! s:GetTabsOrSpacesShortStatus(bufnum) abort
@@ -164,16 +173,85 @@ function! s:FileSize() abort
     endif
 endfunction
 
+function! s:FileEncoding(bufnum) abort
+    let encoding = getbufvar(a:bufnum, '&fileencoding')
+
+    if empty(encoding)
+        let encoding = getbufvar(a:bufnum, '&encoding')
+    endif
+
+    " Show encoding only if it is not utf-8
+    if encoding ==? 'utf-8'
+        let encoding = ''
+    endif
+
+    return encoding
+endfunction
+
+function! s:FileFormat(bufnum) abort
+    let format = getbufvar(a:bufnum, '&fileformat')
+
+    " Show format only if it is not unix
+    if format ==? 'unix'
+        let format = ''
+    endif
+
+    return format
+endfunction
+
+function! s:GetFileInfo(bufnum) abort
+    let result = []
+
+    " file type
+    let type = s:GetBufferType(a:bufnum)
+    if exists('*WebDevIconsGetFileTypeSymbol')
+        call add(result, type . WebDevIconsGetFileTypeSymbol() . ' ')
+    elseif strlen(type)
+        call add(result, type)
+    endif
+
+    " file encoding
+    let encoding = s:FileEncoding(a:bufnum)
+    if strlen(encoding)
+        call add(result, encoding)
+    endif
+
+    " file format
+    if exists('*WebDevIconsGetFileFormatSymbol')
+        call add(result, WebDevIconsGetFileFormatSymbol() . ' ')
+    else
+        let format = s:FileFormat(a:bufnum)
+        if strlen(format)
+            call add(result, format)
+        endif
+    endif
+
+    if exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
+        if len(result) == 2
+            let result[0] = s:strip(result[0])
+        endif
+        let result = [ join(result) ]
+    endif
+
+    return result
+endfunction
+
 function! s:ActiveStatusLine(winnum) abort
+    " clipboard status
+    let stl = s:GetClipboardStatus()
+
     let bufnum = winbufnr(a:winnum)
 
-    let stl = s:GetAlternativeStatus(a:winnum, bufnum)
+    let stl .= s:GetAlternativeStatus(a:winnum, bufnum)
 
-    if empty(stl)
+    " show only alternative status if any
+    let has_no_alternative_status = empty(stl)
+
+    if has_no_alternative_status
         let left_ary = []
-        let filename = s:GetFileNameAndFlags(a:winnum, bufnum)
 
         " file name %f
+        let filename = s:GetFileNameAndFlags(a:winnum, bufnum)
         call add(left_ary, filename)
 
         " git branch
@@ -192,70 +270,57 @@ function! s:ActiveStatusLine(winnum) abort
         let stl .= ' %<' . join(left_ary, printf(' %s ', s:symbols.right)) . ' '
     endif
 
+    " reset highlight
     let stl .= '%*'
 
     " fill
     let stl .= s:HiSection('FillStatus') . ' %='
 
-    let type = s:GetBufferType(bufnum)
-    let name = s:GetBufferName(bufnum)
-
     " right side
-    if s:ShowMoreFileInfo(type, name)
+    if has_no_alternative_status
         let stl .= s:HiSection('RightStatus') . ' %<'
 
         let right_ary = []
 
+        " file size
         if g:statusline_show_file_size
             call add(right_ary, s:FileSize())
         endif
 
         let show_tabs_spaces = !s:IsSmallWindow(a:winnum)
-        let is_short_status = show_tabs_spaces && &paste && &spell
+        let show_short_status = show_tabs_spaces && &paste && &spell
 
-        " paste status
-        if &paste
-            call add(right_ary, is_short_status ? '[P]' : 'PASTE')
-        endif
+        if show_short_status
+            " paste status
+            if &paste
+                call add(right_ary, '[P]')
+            endif
 
-        " spell status
-        if &spell
-            call add(right_ary, printf(is_short_status ? '[%s]' : 'SPELL [%s]', toupper(substitute(&spelllang, ',', '/', 'g'))))
-        endif
+            " spell status
+            if &spell
+                call add(right_ary, printf('[%s]', toupper(substitute(&spelllang, ',', '/', 'g'))))
+            endif
 
-        " tabs/spaces
-        if is_short_status
+            " tabs/spaces
             call add(right_ary, s:GetTabsOrSpacesShortStatus(bufnum))
-        elseif show_tabs_spaces
-            call add(right_ary, s:GetTabsOrSpacesStatus(bufnum))
-        endif
-
-        " file type
-        if exists('*WebDevIconsGetFileTypeSymbol')
-            call add(right_ary, WebDevIconsGetFileTypeSymbol() . ' ')
-        elseif strlen(type)
-            call add(right_ary, type)
-        endif
-
-        " file encoding
-        let encoding = getbufvar(bufnum, '&fileencoding')
-        if empty(encoding)
-            let encoding = getbufvar(bufnum, '&encoding')
-        endif
-
-        if strlen(encoding) && encoding !=# 'utf-8'
-            call add(right_ary, encoding)
-        endif
-
-        " file format
-        if exists('*WebDevIconsGetFileFormatSymbol')
-            call add(right_ary, WebDevIconsGetFileFormatSymbol() . ' ')
         else
-            let format  = getbufvar(bufnum, '&fileformat')
-            if strlen(format) && format !=# 'unix'
-                call add(right_ary, format)
+            " paste status
+            if &paste
+                call add(right_ary, 'PASTE')
+            endif
+
+            " spell status
+            if &spell
+                call add(right_ary, printf('SPELL [%s]', toupper(substitute(&spelllang, ',', '/', 'g'))))
+            endif
+
+            if show_tabs_spaces
+                call add(right_ary, s:GetTabsOrSpacesStatus(bufnum))
             endif
         endif
+
+        " file info: type / encoding / format
+        call extend(right_ary, s:GetFileInfo(bufnum))
 
         let stl .= join(right_ary, printf(' %s ', s:symbols.left)) . ' '
     endif
@@ -278,7 +343,7 @@ endfunction
 
 function! s:GetAlternativeStatus(winnum, bufnum) abort
     let type = s:GetBufferType(a:bufnum)
-    let name = s:GetBufferName(a:bufnum)
+    let name = fnamemodify(bufname(a:bufnum), ':t')
 
     let stl = ''
 
@@ -361,14 +426,6 @@ function! s:GetBufferType(bufnum) abort
     endif
 
     return type
-endfunction
-
-function! s:GetBufferName(bufnum) abort
-    return fnamemodify(bufname(a:bufnum), ':t')
-endfunction
-
-function! s:ShowMoreFileInfo(type, name) abort
-    return !has_key(s:name_dict, a:name) && !has_key(s:type_dict, a:type)
 endfunction
 
 function! s:IsSmallWindow(winnum) abort
