@@ -314,23 +314,20 @@ endfunction
 
 function! s:GetAlternativeStatus(winnum, bufnum) abort
     let type = s:GetBufferType(a:bufnum)
-    let name = fnamemodify(bufname(a:bufnum), ':t')
-
-    let stl = ''
-
-    if has_key(s:filename_modes, name)
-        let stl = ' ' . get(s:filename_modes, name) . ' '
-    elseif has_key(s:filetype_modes, type)
-        let stl = ' ' . get(s:filetype_modes, type)
-
+    if has_key(s:filetype_modes, type)
         if type ==? 'help'
-            let stl .= ' %<' . s:GetFileName(a:winnum, a:bufnum)
+            return printf(' %s %%<%s ', get(s:filetype_modes, type), s:GetFileName(a:winnum, a:bufnum))
         endif
 
-        let stl .= ' '
+        return ' ' . get(s:filetype_modes, type) . ' '
     endif
 
-    return stl
+    let name = fnamemodify(bufname(a:bufnum), ':t')
+    if has_key(s:filename_modes, name)
+        return ' ' . get(s:filename_modes, name) . ' '
+    endif
+
+    return ''
 endfunction
 
 function! s:ActiveStatusLine(winnum) abort
