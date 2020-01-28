@@ -44,19 +44,22 @@ let s:filename_modes = {
             \ }
 
 let s:filetype_modes = {
-            \ 'netrw':         'NetrwTree',
-            \ 'nerdtree':      'NERDTree',
-            \ 'startify':      'Startify',
-            \ 'vim-plug':      'Plug',
-            \ 'help':          'HELP',
-            \ 'qf':            '%q %{get(w:, "quickfix_title", "")}',
-            \ 'godoc':         'GoDoc',
-            \ 'gedoc':         'GeDoc',
-            \ 'gitcommit':     'Commit Message',
-            \ 'fugitiveblame': 'FugitiveBlame',
-            \ 'agit':          'Agit',
-            \ 'agit_diff':     'Agit',
-            \ 'agit_stat':     'Agit',
+            \ 'ctrlp':             'CtrlP',
+            \ 'leaderf':           'LeaderF',
+            \ 'netrw':             'NetrwTree',
+            \ 'nerdtree':          'NERDTree',
+            \ 'startify':          'Startify',
+            \ 'vim-plug':          'Plug',
+            \ 'help':              'HELP',
+            \ 'qf':                '%q %{get(w:, "quickfix_title", "")}',
+            \ 'godoc':             'GoDoc',
+            \ 'gedoc':             'GeDoc',
+            \ 'gitcommit':         'Commit Message',
+            \ 'fugitiveblame':     'FugitiveBlame',
+            \ 'gitmessengerpopup': 'Git Messenger',
+            \ 'agit':              'Agit',
+            \ 'agit_diff':         'Agit Diff',
+            \ 'agit_stat':         'Agit Stat',
             \ }
 
 " Hightlight mappings
