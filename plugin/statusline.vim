@@ -8,6 +8,9 @@ endif
 
 let g:loaded_vim_statusline = 1
 
+let s:save_cpo = &cpo
+set cpo&vim
+
 " Settings
 let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
 let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
@@ -535,7 +538,9 @@ function! Tabline() abort
             let end_index = start_index + (max_tab_count - 1)
         endif
 
-        if start_index > 0
+        if current_index == (tab_count - 1)
+            let st .= s:TabPlaceholder(start_index - 1)
+        elseif start_index > 0
             let st .= s:TabPlaceholder(start_index + 1)
         endif
         
@@ -545,7 +550,7 @@ function! Tabline() abort
             let st .= s:TabLabel(i)
         endfor
 
-        if end_index < (tab_count - 1)
+        if current_index < (tab_count - 1) && end_index < (tab_count - 1)
             let st .= s:TabPlaceholder(end_index + 1)
         endif
     endif
@@ -653,3 +658,6 @@ function! ZoomWinStatusLine(zoomstate) abort
 endfunction
 
 let g:ZoomWin_funcref= function('ZoomWinStatusLine')
+
+let &cpo = s:save_cpo
+unlet s:save_cpo
