@@ -33,13 +33,10 @@ let s:symbols = {
 
 " Alternate status dictionaries
 let s:filename_modes = {
-            \ 'ControlP':             'CtrlP',
             \ '__Tagbar__':           'Tagbar',
             \ '__Gundo__':            'Gundo',
             \ '__Gundo_Preview__':    'Gundo Preview',
             \ '[BufExplorer]':        'BufExplorer',
-            \ 'NERD_tree':            'NERDTree',
-            \ 'NERD_tree_1':          'NERDTree',
             \ '[Command Line]':       'Command Line',
             \ '[Plugins]':            'Plugins',
             \ '__committia_status__': 'Committia Status',
@@ -53,7 +50,6 @@ let s:filetype_modes = {
             \ 'vim-plug':      'Plug',
             \ 'help':          'HELP',
             \ 'qf':            '%q %{get(w:, "quickfix_title", "")}',
-            \ 'quickfix':      '%q %{get(w:, "quickfix_title", "")}',
             \ 'godoc':         'GoDoc',
             \ 'gedoc':         'GeDoc',
             \ 'gitcommit':     'Commit Message',
