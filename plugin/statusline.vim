@@ -75,6 +75,7 @@ let g:statusline_colors = {
             \ 'NormalTab':      'TabLine',
             \ 'FillTab':        'LineNr',
             \ 'CloseButton':    'CursorLineNr',
+            \ 'CtrlP':          'Character',
             \ }
 
 if exists('*trim')
@@ -597,11 +598,23 @@ let g:ctrlp_status_func = {
             \ }
 
 function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) abort
-    let focus   = '%#LineNr# ' . a:focus . ' %*'
-    let byfname = '%#Character# ' . a:byfname . ' %*'
-    let item    = '%#Character# ' . a:item . ' %*'
+    let focus   = s:HiSection('FillStatus') . ' ' . a:focus . ' %*'
+    let byfname = s:HiSection('CtrlP') . ' ' . a:byfname . ' %*'
+    let item    = s:HiSection('CtrlP') . ' ' . a:item . ' %*'
     let dir     = s:GetCurrentDir()
-    return printf(' CtrlP %s %s %s %s %s %%=%%<%s%s %s ', s:symbols.right, a:prev, item, a:next, a:marked, focus, byfname, dir)
+    return printf(' %s CtrlP %s %s %s %s %s %s %%=%s%%<%s%s %s %s ',
+                \ s:HiSection('LeftStatus'),
+                \ s:symbols.right,
+                \ a:prev,
+                \ item,
+                \ a:next,
+                \ a:marked,
+                \ s:HiSection('FillStatus'),
+                \ s:HiSection('RightStatus'),
+                \ focus,
+                \ byfname,
+                \ s:symbols.left,
+                \ dir)
 endfunction
 
 function! CtrlPProgressStatusLine(len) abort
