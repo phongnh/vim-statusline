@@ -385,7 +385,10 @@ function! s:ActiveStatusLine(winnum) abort
 
         " file size
         if g:statusline_show_file_size
-            call add(right_ary, s:FileSize())
+            let file_size = s:FileSize()
+            if !empty(file_size)
+                call add(right_ary, s:FileSize())
+            endif
         endif
 
         let show_tabs_spaces = !s:IsSmallWindow(a:winnum)
