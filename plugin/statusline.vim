@@ -182,7 +182,14 @@ endfunction
 function! s:GetGitBranch() abort
     let branch = ''
 
-    if exists('*fugitive#head')
+    if exists('*FugitiveHead')
+        let branch = FugitiveHead()
+
+        if empty(branch) && exists('*FugitiveDetect') && !exists('b:git_dir')
+            call FugitiveDetect(getcwd())
+            let branch = FugitiveHead()
+        endif
+    elseif exists('*fugitive#head')
         let branch = fugitive#head()
 
         if empty(branch) && exists('*fugitive#detect') && !exists('b:git_dir')
