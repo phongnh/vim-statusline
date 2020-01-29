@@ -145,7 +145,7 @@ function! s:GetFileName(winnum, bufnum) abort
 
         let winwidth = winwidth(a:winnum) - 2
 
-        if name[0] == '~' || name[0] == '/' || strlen(name) > winwidth
+        if strlen(name) > winwidth && (name[0] == '~' || name[0] == '/')
             let name = s:ShortenFileName(name)
         endif
 
