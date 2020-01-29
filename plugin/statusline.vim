@@ -359,7 +359,7 @@ function! s:ActiveStatusLine(winnum) abort
         call add(left_ary, filename)
 
         " git branch
-        if !s:IsSmallWindow(a:winnum) && g:statusline_show_git_branch
+        if g:statusline_show_git_branch && !s:IsSmallWindow(a:winnum)
             let branch = s:GetGitBranch()
 
             if strlen(branch)
@@ -387,7 +387,7 @@ function! s:ActiveStatusLine(winnum) abort
         let right_ary = []
 
         " file size
-        if g:statusline_show_file_size
+        if g:statusline_show_file_size && !s:IsSmallWindow(a:winnum)
             let file_size = s:FileSize()
             if !empty(file_size)
                 call add(right_ary, s:FileSize())
