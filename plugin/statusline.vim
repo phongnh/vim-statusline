@@ -54,7 +54,7 @@ let s:filetype_modes = {
             \ 'startify':          'Startify',
             \ 'vim-plug':          'Plug',
             \ 'help':              'HELP',
-            \ 'qf':                '%q %{get(w:, "quickfix_title", "")}',
+            \ 'qf':                '%q',
             \ 'godoc':             'GoDoc',
             \ 'gedoc':             'GeDoc',
             \ 'gitcommit':         'Commit Message',
@@ -267,7 +267,7 @@ function! s:FileEncoding(bufnum) abort
     endif
 
     " Show encoding only if it is not utf-8
-    if encoding ==? 'utf-8'
+    if encoding ==# 'utf-8'
         let encoding = ''
     endif
 
@@ -278,7 +278,7 @@ function! s:FileFormat(bufnum) abort
     let format = getbufvar(a:bufnum, '&fileformat')
 
     " Show format only if it is not unix
-    if format ==? 'unix'
+    if format ==# 'unix'
         let format = ''
     endif
 
@@ -325,11 +325,20 @@ endfunction
 function! s:GetAlternativeStatus(winnum, bufnum) abort
     let type = s:GetBufferType(a:bufnum)
     if has_key(s:filetype_modes, type)
-        if type ==? 'help'
-            return printf(' %s %%<%s ', get(s:filetype_modes, type), s:GetFileName(a:winnum, a:bufnum))
+        let l:mode = get(s:filetype_modes, type)
+
+        if type ==# 'help'
+            return printf(' %s %%<%s ', l:mode, s:GetFileName(a:winnum, a:bufnum))
         endif
 
-        return ' ' . get(s:filetype_modes, type) . ' '
+        if type ==# 'qf'
+            let l:qf_title = get(w:, 'quickfix_title', '')
+            if strlen(l:qf_title)
+                return printf(' %s %%<%s ', l:mode, l:qf_title)
+            endif
+        endif
+
+        return ' ' . l:mode . ' '
     endif
 
     let name = fnamemodify(bufname(a:bufnum), ':t')
