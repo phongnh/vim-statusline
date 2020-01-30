@@ -291,7 +291,7 @@ function! s:GetFileInfo(bufnum) abort
     " file type
     let type = s:GetBufferType(a:bufnum)
     if exists('*WebDevIconsGetFileTypeSymbol')
-        call add(result, type . WebDevIconsGetFileTypeSymbol() . ' ')
+        call add(result, type . ' ' . WebDevIconsGetFileTypeSymbol() . ' ')
     elseif strlen(type)
         call add(result, type)
     endif
