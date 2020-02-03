@@ -152,6 +152,14 @@ function! s:GetFileName(winnum, bufnum) abort
         if strlen(name) > winwidth
             let name = fnamemodify(name, ':t')
         endif
+
+        if strlen(name) > 50
+            let name = s:ShortenFileName(name)
+        endif
+
+        if strlen(name) > 50
+            let name = fnamemodify(name, ':t')
+        endif
     endif
 
     return name
