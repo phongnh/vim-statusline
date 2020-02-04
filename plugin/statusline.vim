@@ -376,7 +376,7 @@ function! s:CtrlSFStatusLine(bufnum)
     endif
 
     " left status
-    let stl = s:HiSection('LeftStatus') . s:BuildLeftStatus(left_ary)
+    let stl = s:BuildLeftStatus(left_ary)
 
     " reset highlight
     let stl .= '%*'
