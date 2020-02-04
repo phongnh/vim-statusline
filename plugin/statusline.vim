@@ -363,10 +363,11 @@ function! s:ActiveStatusLine(winnum) abort
 
     let bufnum = winbufnr(a:winnum)
 
-    let stl .= s:GetAlternativeStatus(a:winnum, bufnum)
+    let alt_stl = s:GetAlternativeStatus(a:winnum, bufnum)
+    let stl .= alt_stl
 
     " show only alternative status if any
-    let has_no_alternative_status = empty(stl)
+    let has_no_alternative_status = empty(alt_stl)
 
     if has_no_alternative_status
         let left_ary = []
