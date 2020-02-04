@@ -36,6 +36,8 @@ let s:symbols = {
 
 " Alternate status dictionaries
 let s:filename_modes = {
+            \ '__CtrlSF__':           'CtrlSF',
+            \ '__CtrlSFPreview__':    'CtrlSFPreview',
             \ '__Tagbar__':           'Tagbar',
             \ '__Gundo__':            'Gundo',
             \ '__Gundo_Preview__':    'Gundo Preview',
@@ -362,12 +364,15 @@ function! s:CtrlSFStatusLine(bufnum)
         let right_ary = s:RemoveEmptyElement([
                     \ ctrlsf#utils#SectionX(),
                     \ ])
+        
+        let filename = ctrlsf#utils#SectionC()
     endif
 
     " preview window
     if bufname == '__CtrlSFPreview__'
         let left_ary = ['Preview']
         let right_ary = []
+        let filename = ctrlsf#utils#PreviewSectionC()
     endif
 
     " left status
@@ -380,7 +385,7 @@ function! s:CtrlSFStatusLine(bufnum)
     let stl .= s:HiSection('FillStatus')
 
     " file name
-    let stl .= ' ' . ctrlsf#utils#SectionC() . ' ' . ' %='
+    let stl .= ' ' . filename . ' %='
 
     " right status
     let stl .= s:BuildRightStatus(right_ary)
@@ -413,6 +418,9 @@ function! s:GetAlternativeStatus(winnum, bufnum) abort
 
     let name = fnamemodify(bufname(a:bufnum), ':t')
     if has_key(s:filename_modes, name)
+        if name ==# '__CtrlSF__' || name ==# '__CtrlSFPreview__'
+            return s:CtrlSFStatusLine(a:bufnum)
+        endif
         return ' ' . get(s:filename_modes, name) . ' '
     endif
 
