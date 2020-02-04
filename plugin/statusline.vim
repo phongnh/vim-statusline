@@ -48,6 +48,7 @@ let s:filename_modes = {
 
 let s:filetype_modes = {
             \ 'ctrlp':             'CtrlP',
+            \ 'ctrlsf':            'CtrlSF',
             \ 'leaderf':           'LeaderF',
             \ 'netrw':             'NetrwTree',
             \ 'nerdtree':          'NERDTree',
@@ -89,6 +90,24 @@ else
         return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
     endfunction
 endif
+
+function! s:RemoveEmptyElement(list) abort
+    return filter(copy(a:list), '!empty(v:val)')
+endfunction
+
+function! s:BuildLeftStatus(parts) abort
+    if empty(a:parts)
+        return ''
+    endif
+    return ' %<' . join(a:parts, printf(' %s ', s:symbols.right)) . ' '
+endfunction
+
+function! s:BuildRightStatus(parts) abort
+    if empty(a:parts)
+        return ''
+    endif
+    return ' %<' . join(a:parts, printf(' %s ', s:symbols.left)) . ' '
+endfunction
 
 function! s:HiSection(section) abort
     return printf('%%#%s#', g:statusline_colors[a:section])
@@ -145,7 +164,7 @@ function! s:GetFileName(winnum, bufnum) abort
 
         let winwidth = winwidth(a:winnum) - 2
 
-        if strlen(name) > winwidth && (name[0] == '~' || name[0] == '/')
+        if strlen(name) > winwidth && (name[0] =~ '\~\|/')
             let name = s:ShortenFileName(name)
         endif
 
@@ -330,6 +349,45 @@ function! s:GetFileInfo(bufnum) abort
     return result
 endfunction
 
+function! s:CtrlSFStatusLine(bufnum)
+    let bufname = bufname(a:bufnum)
+
+    " main window
+    if bufname == '__CtrlSF__'
+        let left_ary = s:RemoveEmptyElement([
+                    \ 'CtrlSF',
+                    \ substitute(ctrlsf#utils#SectionB(), 'Pattern: ', '', ''),
+                    \ ])
+
+        let right_ary = s:RemoveEmptyElement([
+                    \ ctrlsf#utils#SectionX(),
+                    \ ])
+    endif
+
+    " preview window
+    if bufname == '__CtrlSFPreview__'
+        let left_ary = ['Preview']
+        let right_ary = []
+    endif
+
+    " left status
+    let stl = s:HiSection('LeftStatus') . s:BuildLeftStatus(left_ary)
+
+    " reset highlight
+    let stl .= '%*'
+
+    " fill
+    let stl .= s:HiSection('FillStatus')
+
+    " file name
+    let stl .= ' ' . ctrlsf#utils#SectionC() . ' ' . ' %='
+
+    " right status
+    let stl .= s:BuildRightStatus(right_ary)
+
+    return stl
+endfunction
+
 function! s:GetAlternativeStatus(winnum, bufnum) abort
     let type = s:GetBufferType(a:bufnum)
     if has_key(s:filetype_modes, type)
@@ -344,6 +402,10 @@ function! s:GetAlternativeStatus(winnum, bufnum) abort
             if strlen(l:qf_title)
                 return printf(' %s %%<%s ', l:mode, l:qf_title)
             endif
+        endif
+
+        if type ==# 'ctrlsf'
+            return s:CtrlSFStatusLine(a:bufnum)
         endif
 
         return ' ' . l:mode . ' '
@@ -389,7 +451,7 @@ function! s:ActiveStatusLine(winnum) abort
             endif
         endif
 
-        let stl .= ' %<' . join(left_ary, printf(' %s ', s:symbols.right)) . ' '
+        let stl .= s:BuildLeftStatus(left_ary)
     endif
 
     " reset highlight
@@ -400,8 +462,6 @@ function! s:ActiveStatusLine(winnum) abort
 
     " right side
     if has_no_alternative_status
-        let stl .= s:HiSection('RightStatus') . ' %<'
-
         let right_ary = []
 
         " file size
@@ -447,7 +507,7 @@ function! s:ActiveStatusLine(winnum) abort
         " file info: type / encoding / format
         call extend(right_ary, s:GetFileInfo(bufnum))
 
-        let stl .= join(right_ary, printf(' %s ', s:symbols.left)) . ' '
+        let stl .= s:HiSection('RightStatus') . s:BuildRightStatus(right_ary)
     endif
 
     return stl
@@ -499,13 +559,13 @@ function! s:TabLabel(tabnr) abort
     let label .= (tabnr == tabpagenr() ? s:HiSection('SelectedTab') : s:HiSection('NormalTab'))
     let label .= ' ' . tabnr . ':'
 
-    if buftype == 'nofile'
+    if buftype ==# 'nofile'
         if bufname =~ '\/.'
             let bufname = substitute(bufname, '.*\/\ze.', '', '')
         endif
     else
         let bufname = fnamemodify(bufname, ':p:~:.')
-        if bufname[0] == '~' || bufname[0] == '/'
+        if bufname[0] =~ '\~\|/'
             let bufname = s:ShortenFileName(bufname)
         elseif strlen(bufname) > 30
             let bufname = fnamemodify(bufname, ':t')
@@ -516,7 +576,7 @@ function! s:TabLabel(tabnr) abort
         endif
     endif
 
-    if bufname == ''
+    if empty(bufname)
         let bufname = '[No Name]'
     endif
 
@@ -561,7 +621,7 @@ function! Tabline() abort
         elseif start_index > 0
             let st .= s:TabPlaceholder(start_index + 1)
         endif
-        
+
         let displayable_tabs = tabs[start_index:end_index]
 
         for i in displayable_tabs
