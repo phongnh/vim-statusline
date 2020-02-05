@@ -27,11 +27,23 @@ let s:displayable_tab_count = 5
 
 " Symbols
 let s:symbols = {
-            \ 'clipboard': '@',
-            \ 'left':      '«',
-            \ 'right':     '»',
+            \ 'clipboard': '©',
+            \ 'paste':     'Ρ',
+            \ 'arrow':     '←',
+            \ 'left':      '»',
+            \ 'right':     '«',
             \ 'readonly':  '',
             \ 'ellipsis':  '…',
+            \ }
+
+" ρ: Paste
+" ®: Readonly
+
+let s:powerline = {
+            \ 'left':      '',
+            \ 'left_alt':  '',
+            \ 'right':     '',
+            \ 'right_alt': '',
             \ }
 
 " Alternate status dictionaries
