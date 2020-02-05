@@ -50,7 +50,6 @@ let s:filename_modes = {
 
 let s:filetype_modes = {
             \ 'ctrlp':             'CtrlP',
-            \ 'ctrlsf':            'CtrlSF',
             \ 'leaderf':           'LeaderF',
             \ 'netrw':             'NetrwTree',
             \ 'nerdtree':          'NERDTree',
@@ -421,10 +420,6 @@ function! s:GetAlternativeStatus(winnum, bufnum) abort
         if type ==# 'qf'
             let l:qf_title = get(w:, 'quickfix_title', '')
             return s:BuildAlternativeMode(l:mode, l:qf_title)
-        endif
-
-        if type ==# 'ctrlsf'
-            return s:CtrlSFStatusLine(a:bufnum)
         endif
 
         return ' ' . l:mode . ' '
