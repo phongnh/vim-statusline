@@ -580,7 +580,7 @@ function! s:TabLabel(tabnr) abort
         endif
 
         if exists('*WebDevIconsGetFileTypeSymbol')
-            let bufname .= WebDevIconsGetFileTypeSymbol() . ' '
+            let bufname .= ' ' . WebDevIconsGetFileTypeSymbol() . ' '
         endif
     endif
 
