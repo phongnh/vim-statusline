@@ -56,6 +56,7 @@ let s:filetype_modes = {
             \ 'nerdtree':          'NERDTree',
             \ 'startify':          'Startify',
             \ 'vim-plug':          'Plug',
+            \ 'terminal':          'Terminal',
             \ 'help':              'HELP',
             \ 'qf':                '%q',
             \ 'godoc':             'GoDoc',
@@ -95,6 +96,21 @@ endif
 
 function! s:RemoveEmptyElement(list) abort
     return filter(copy(a:list), '!empty(v:val)')
+endfunction
+
+function! s:BuildAlternativeMode(mode, ...) abort
+    let l:mode = ' ' . a:mode . ' '
+
+    if len(a:000) > 0
+        let parts = s:RemoveEmptyElement(a:000)
+        let l:stl = s:BuildLeftStatus(parts)
+
+        if strlen(l:stl)
+            return l:mode . s:symbols.right . l:stl
+        endif
+    endif
+
+    return l:mode
 endfunction
 
 function! s:BuildLeftStatus(parts) abort
@@ -398,15 +414,13 @@ function! s:GetAlternativeStatus(winnum, bufnum) abort
     if has_key(s:filetype_modes, type)
         let l:mode = get(s:filetype_modes, type)
 
-        if type ==# 'help'
-            return printf(' %s %%<%s ', l:mode, s:GetFileName(a:winnum, a:bufnum))
+        if type ==# 'terminal' || type ==# 'help'
+            return s:BuildAlternativeMode(l:mode, s:GetFileName(a:winnum, a:bufnum))
         endif
 
         if type ==# 'qf'
             let l:qf_title = get(w:, 'quickfix_title', '')
-            if strlen(l:qf_title)
-                return printf(' %s %%<%s ', l:mode, l:qf_title)
-            endif
+            return s:BuildAlternativeMode(l:mode, l:qf_title)
         endif
 
         if type ==# 'ctrlsf'
