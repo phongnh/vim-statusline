@@ -51,8 +51,9 @@ let s:powerline = {
             \ 'right_alt': '',
             \ }
 
-" let s:has_devicons = findfile('plugin/webdevicons.vim', &rtp) != ''
-let s:has_devicons = exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
+" Support DevIcons
+let s:has_devicons = findfile('plugin/webdevicons.vim', &rtp) != ''
+" let s:has_devicons = exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
 
 " Alternate status dictionaries
 let s:filename_modes = {
