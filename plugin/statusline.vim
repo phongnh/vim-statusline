@@ -291,13 +291,13 @@ function! s:GetCurrentDir() abort
 endfunction
 
 function! s:GetBufferType(bufnum) abort
-    let type = getbufvar(a:bufnum, '&filetype')
+    let ft = getbufvar(a:bufnum, '&filetype')
 
-    if empty(type)
-        let type = getbufvar(a:bufnum, '&buftype')
+    if empty(ft)
+        let ft = getbufvar(a:bufnum, '&buftype')
     endif
 
-    return type
+    return ft
 endfunction
 
 function! s:GetFileName(winnum, bufnum) abort
