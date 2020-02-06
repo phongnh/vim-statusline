@@ -28,8 +28,8 @@ let s:displayable_tab_count = 5
 
 " Symbols
 let s:symbols = {
-            \ 'clipboard': '©',
-            \ 'paste':     '℗ ',
+            \ 'clipboard': 'ⓒ  ',
+            \ 'paste':     'Ⓟ  ',
             \ 'arrow':     '←',
             \ 'left':      '»',
             \ 'right':     '«',
@@ -40,10 +40,20 @@ let s:symbols = {
             \ }
 
 " Alternative Symbols
-" ℗  : Paste
+" ©: Clipboard
+"Ⓒ  : Clipboard
+"ⓒ  : Clipboard
+"ⓒ  : Clipboard
+"ⓒ  : Clipboard
+"ⓟ  : Paste
+"Ⓟ  : Paste
+"℗  : Paste
+"℗  : Paste
 " Ρ: Paste
 " ρ: Paste
-" ®: Readonly
+"Ⓡ  : Readonly
+"ⓡ  : Readonly
+" ® : Readonly
 
 let s:powerline = {
             \ 'left':      '',
@@ -192,7 +202,6 @@ endfunction
 function! s:BuildStatus(left_parts, right_parts) abort
     let left_parts  = s:ParseList(a:left_parts)
     let right_parts = s:ParseList(a:right_parts)
-    let active = get(a:, 1, 1)
 
     let stl = s:BuildLeftStatus(left_parts[0], left_parts[1:])
     let stl .= s:StatusSeparator()
@@ -399,6 +408,7 @@ function! s:FormatBranch(branch, filename, winwidth) abort
 
     return branch
 endfunction
+
 " Copied from https://github.com/ahmedelgabri/dotfiles/blob/master/files/vim/.vim/autoload/statusline.vim
 function! s:FileSize() abort
     let l:size = getfsize(expand('%'))
