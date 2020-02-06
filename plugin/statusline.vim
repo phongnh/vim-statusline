@@ -29,7 +29,7 @@ let s:displayable_tab_count = 5
 " Symbols
 let s:symbols = {
             \ 'clipboard': '©',
-            \ 'paste':     '℗',
+            \ 'paste':     '℗ ',
             \ 'arrow':     '←',
             \ 'left':      '»',
             \ 'right':     '«',
@@ -40,6 +40,7 @@ let s:symbols = {
             \ }
 
 " Alternative Symbols
+" ℗  : Paste
 " Ρ: Paste
 " ρ: Paste
 " ®: Readonly
