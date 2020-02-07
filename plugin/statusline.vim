@@ -39,6 +39,11 @@ let s:symbols = {
             \ 'fill_sep':  ' ',
             \ }
 
+call extend(s:symbols, {
+            \ 'left_sep':  ' ' . s:symbols.left . ' ',
+            \ 'right_sep': ' ' . s:symbols.right . ' ',
+            \ })
+
 " Alternative Symbols
 " ©: Clipboard
 "Ⓒ  : Clipboard
@@ -54,13 +59,6 @@ let s:symbols = {
 "Ⓡ  : Readonly
 "ⓡ  : Readonly
 " ® : Readonly
-
-let s:powerline = {
-            \ 'left':      '',
-            \ 'left_alt':  '',
-            \ 'right':     '',
-            \ 'right_alt': '',
-            \ }
 
 " Support DevIcons
 let s:has_devicons = findfile('plugin/webdevicons.vim', &rtp) != ''
@@ -178,7 +176,7 @@ function! s:BuildMode(parts, sep) abort
     if empty(l:parts)
         return ''
     endif
-    let l:sep = empty(a:sep) ? ' ' : printf(' %s ', a:sep)
+    let l:sep = empty(a:sep) ? ' ' : a:sep
     return ' %<' . join(l:parts, l:sep) . ' '
 endfunction
 
@@ -192,11 +190,11 @@ function! s:BuildFill(parts, ...) abort
 endfunction
 
 function! s:BuildLeftStatus(mode, ...) abort
-    return s:BuildMode(a:mode, s:symbols.left) . '%*' . s:BuildFill(get(a:, 1, []))
+    return s:BuildMode(a:mode, s:symbols.left_sep) . '%*' . s:BuildFill(get(a:, 1, []))
 endfunction
 
 function! s:BuildRightStatus(mode, ...) abort
-    return s:BuildFill(get(a:, 1, [])) . '%*' . s:BuildMode(a:mode, s:symbols.right)
+    return s:BuildFill(get(a:, 1, [])) . '%*' . s:BuildMode(a:mode, s:symbols.right_sep)
 endfunction
 
 function! s:BuildStatus(left_parts, right_parts) abort
