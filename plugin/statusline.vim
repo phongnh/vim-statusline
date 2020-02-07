@@ -28,8 +28,8 @@ let s:displayable_tab_count = 5
 
 " Symbols
 let s:symbols = {
-            \ 'clipboard': 'ⓒ  ',
-            \ 'paste':     'Ⓟ  ',
+            \ 'clipboard': 'ⓒ ',
+            \ 'paste':     'Ⓟ ',
             \ 'left':      '»',
             \ 'right':     '«',
             \ 'readonly':  '',
