@@ -197,9 +197,9 @@ function! s:BuildRightStatus(mode, ...) abort
     return s:BuildFill(get(a:, 1, [])) . '%*' . s:BuildMode(a:mode, s:symbols.right_sep)
 endfunction
 
-function! s:BuildStatus(left_parts, right_parts) abort
+function! s:BuildStatus(left_parts, ...) abort
     let left_parts  = s:ParseList(a:left_parts)
-    let right_parts = s:ParseList(a:right_parts)
+    let right_parts = s:ParseList(get(a:, 1, []))
 
     let stl = s:BuildLeftStatus(left_parts[0], left_parts[1:])
     let stl .= s:StatusSeparator()
@@ -218,9 +218,9 @@ function! s:CustomMode(winnum, bufnum) abort
         return s:filetype_modes[ft]
     endif
 
-    let bname = fnamemodify(bufname(a:bufnum), ':t')
-    if has_key(s:filename_modes, bname)
-        return s:filename_modes[bname]
+    let fname = fnamemodify(bufname(a:bufnum), ':t')
+    if has_key(s:filename_modes, fname)
+        return s:filename_modes[fname]
     endif
 
     return ''
@@ -234,24 +234,24 @@ function! s:CustomStatus(winnum, bufnum) abort
         let l:mode = s:filetype_modes[ft]
 
         if ft ==# 'terminal'
-            return s:BuildStatus([ [l:mode, '%f'] ], [])
+            return s:BuildStatus([ [l:mode, '%f'] ])
         endif
 
         if ft ==# 'help'
-            return s:BuildStatus([ [l:mode, fnamemodify(bufname(a:bufnum), ':p')] ], [])
+            return s:BuildStatus([ [l:mode, fnamemodify(bufname(a:bufnum), ':p')] ])
         endif
 
         if ft ==# 'qf'
             let l:qf_title = s:Strip(get(w:, 'quickfix_title', ''))
-            return s:BuildStatus([ [l:mode, l:qf_title] ], [])
+            return s:BuildStatus([ [l:mode, l:qf_title] ])
         endif
     endif
 
-    let bname = fnamemodify(bufname(a:bufnum), ':t')
-    if has_key(s:filename_modes, bname)
-        let l:mode = s:filename_modes[bname]
+    let fname = fnamemodify(bufname(a:bufnum), ':t')
+    if has_key(s:filename_modes, fname)
+        let l:mode = s:filename_modes[fname]
 
-        if bname ==# '__CtrlSF__'
+        if fname ==# '__CtrlSF__'
             return s:BuildStatus(
                         \ [
                         \   [
@@ -264,13 +264,13 @@ function! s:CustomStatus(winnum, bufnum) abort
                         \ )
         endif
 
-        if bname ==# '__CtrlSFPreview__'
-            return s:BuildStatus([ l:mode, ctrlsf#utils#PreviewSectionC() ], [])
+        if fname ==# '__CtrlSFPreview__'
+            return s:BuildStatus([ l:mode, ctrlsf#utils#PreviewSectionC() ])
         endif
     endif
 
     if strlen(l:mode)
-        return s:BuildStatus([ l:mode ], [])
+        return s:BuildStatus([ l:mode ])
     endif
 
     return ''
@@ -299,37 +299,37 @@ function! s:GetBufferType(bufnum) abort
 endfunction
 
 function! s:GetFileName(winnum, bufnum) abort
-    let bname = bufname(a:bufnum)
+    let fname = bufname(a:bufnum)
 
-    if empty(bname)
+    if empty(fname)
         return '[No Name]'
     endif
 
-    let bname = fnamemodify(bname, ':~:.')
+    let fname = fnamemodify(fname, ':~:.')
 
     if s:IsSmallWindow(a:winnum)
-        return fnamemodify(bname, ':t')
+        return fnamemodify(fname, ':t')
     endif
 
     let winwidth = winwidth(a:winnum) - 2
 
-    if strlen(bname) > winwidth && (bname[0] =~ '\~\|/')
-        let bname = s:ShortenPath(bname)
+    if strlen(fname) > winwidth && (fname[0] =~ '\~\|/')
+        let fname = s:ShortenPath(fname)
     endif
 
-    if strlen(bname) > winwidth
-        let bname = fnamemodify(bname, ':t')
+    if strlen(fname) > winwidth
+        let fname = fnamemodify(fname, ':t')
     endif
 
-    if strlen(bname) > 50
-        let bname = s:ShortenPath(bname)
+    if strlen(fname) > 50
+        let fname = s:ShortenPath(fname)
     endif
 
-    if strlen(bname) > 50
-        let bname = fnamemodify(bname, ':t')
+    if strlen(fname) > 50
+        let fname = fnamemodify(fname, ':t')
     endif
 
-    return bname
+    return fname
 endfunction
 
 function! s:GetFileFlags(bufnum) abort
@@ -538,7 +538,7 @@ function! s:ActiveStatusLine(winnum) abort
 
     let filename = s:GetFileNameAndFlags(a:winnum, bufnum)
 
-    let stl = s:BuildStatus(
+    return s:BuildStatus(
                 \ [
                 \   [
                 \       s:GitBranchStatus(a:winnum, filename),
@@ -554,7 +554,6 @@ function! s:ActiveStatusLine(winnum) abort
                 \   ],
                 \   s:SpellStatus(),
                 \ ])
-    return stl
 endfunction
 
 function! s:InactiveStatusLine(winnum) abort
@@ -761,8 +760,7 @@ function! TagbarStatusFunc(current, sort, fname, flags, ...) abort
                 \       a:fname
                 \   ],
                 \   empty(a:flags) ? '' : printf('[%s]', join(a:flags, ''))
-                \ ],
-                \ [])
+                \ ])
 endfunction
 
 " ZoomWin Integration
