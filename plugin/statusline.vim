@@ -353,10 +353,6 @@ function! s:GetFileFlags(bufnum) abort
     return flags
 endfunction
 
-function! s:GetFileNameAndFlags(winnum, bufnum) abort
-    return s:GetFileName(a:winnum, a:bufnum) . s:GetFileFlags(a:bufnum)
-endfunction
-
 function! s:GetGitBranch() abort
     let branch = ''
 
@@ -405,6 +401,10 @@ function! s:FormatBranch(branch, filename, winwidth) abort
     endif
 
     return branch
+endfunction
+
+function! s:FileNameStatus(winnum, bufnum) abort
+    return s:GetFileName(a:winnum, a:bufnum) . s:GetFileFlags(a:bufnum)
 endfunction
 
 " Copied from https://github.com/ahmedelgabri/dotfiles/blob/master/files/vim/.vim/autoload/statusline.vim
@@ -536,7 +536,7 @@ function! s:ActiveStatusLine(winnum) abort
         return stl
     endif
 
-    let filename = s:GetFileNameAndFlags(a:winnum, bufnum)
+    let filename = s:FileNameStatus(a:winnum, bufnum)
 
     return s:BuildStatus(
                 \ [
@@ -566,7 +566,7 @@ function! s:InactiveStatusLine(winnum) abort
     endif
 
     " « plugin/statusline.vim[+] »
-    return s:BuildLeftStatus(s:Wrap(s:GetFileNameAndFlags(a:winnum, bufnum)))
+    return s:BuildLeftStatus(s:Wrap(s:FileNameStatus(a:winnum, bufnum)))
 endfunction
 
 function! StatusLine(current, winnum) abort
