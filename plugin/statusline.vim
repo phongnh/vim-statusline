@@ -211,7 +211,7 @@ function! s:BuildStatus(left_parts, ...) abort
     return stl
 endfunction
 
-function! s:CustomMode(winnum, bufnum) abort
+function! s:CustomMode(bufnum) abort
     let ft = s:GetBufferType(a:bufnum)
 
     if has_key(s:filetype_modes, ft)
@@ -226,7 +226,7 @@ function! s:CustomMode(winnum, bufnum) abort
     return ''
 endfunction
 
-function! s:CustomStatus(winnum, bufnum) abort
+function! s:CustomStatus(bufnum) abort
     let l:mode = ''
 
     let ft = s:GetBufferType(a:bufnum)
@@ -531,7 +531,7 @@ function! s:ActiveStatusLine(winnum) abort
     let bufnum = winbufnr(a:winnum)
 
     " custom status
-    let stl = s:CustomStatus(a:winnum, bufnum)
+    let stl = s:CustomStatus(bufnum)
     if strlen(stl)
         return stl
     endif
@@ -560,7 +560,7 @@ function! s:InactiveStatusLine(winnum) abort
     let bufnum = winbufnr(a:winnum)
 
     " show only custom mode in inactive buffer
-    let stl = s:CustomMode(a:winnum, bufnum)
+    let stl = s:CustomMode(bufnum)
     if strlen(stl)
         return ' ' . stl . ' '
     endif
