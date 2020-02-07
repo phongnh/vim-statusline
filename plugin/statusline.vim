@@ -757,7 +757,6 @@ function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) a
                 \       a:prev,
                 \       item,
                 \       a:next,
-                \       a:marked
                 \   ]
                 \ ],
                 \ [
