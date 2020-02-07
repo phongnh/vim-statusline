@@ -30,13 +30,13 @@ let s:displayable_tab_count = 5
 let s:symbols = {
             \ 'clipboard': 'ⓒ  ',
             \ 'paste':     'Ⓟ  ',
-            \ 'arrow':     '←',
             \ 'left':      '»',
             \ 'right':     '«',
             \ 'readonly':  '',
             \ 'ellipsis':  '…',
             \ 'mode_sep':  ' ',
             \ 'fill_sep':  ' ',
+            \ 'arrow':     '←',
             \ }
 
 call extend(s:symbols, {
@@ -223,6 +223,10 @@ function! s:CustomMode(bufnum) abort
         return s:filename_modes[fname]
     endif
 
+    if fname =~? '^NrrwRgn' && exists('b:nrrw_instn')
+        return printf('%s#%d', 'NrrwRgn', b:nrrw_instn)
+    endif
+
     return ''
 endfunction
 
@@ -269,11 +273,30 @@ function! s:CustomStatus(bufnum) abort
         endif
     endif
 
+    if fname =~? '^NrrwRgn' && exists('b:nrrw_instn')
+        return s:NrrwRgnStatus()
+    endif
+
     if strlen(l:mode)
         return s:BuildStatus([ l:mode ])
     endif
 
     return ''
+endfunction
+
+function! s:NrrwRgnStatus() abort
+    let l:mode = [ printf('%s#%d', 'NrrwRgn', b:nrrw_instn) ]
+
+    let dict = exists('*nrrwrgn#NrrwRgnStatus()') ?  nrrwrgn#NrrwRgnStatus() : {}
+
+    if !empty(dict)
+        let fname = fnamemodify(dict.fullname, ':~:.')
+        call add(l:mode, fname)
+    elseif get(b:, 'orig_buf', 0)
+        call add(l:mode, bufname(b:orig_buf))
+    endif
+
+    return s:BuildStatus([ l:mode ])
 endfunction
 
 function! s:GetCurrentDir() abort
