@@ -698,7 +698,7 @@ command! RefreshStatusLine :call s:RefreshStatusLine()
 
 function! s:Init() abort
     execute 'set statusline=%!AutoStatusLine(1,' . win_getid() . ')'
-    augroup VimAutoStatusline
+    augroup VimAutoStatusLine
         autocmd!
         autocmd BufWinEnter,WinEnter * execute 'setlocal statusline=%!AutoStatusLine(1,' . win_getid('#') . ')'
         autocmd WinLeave * execute 'setlocal statusline=%!AutoStatusLine(0,' . win_getid() . ')'
