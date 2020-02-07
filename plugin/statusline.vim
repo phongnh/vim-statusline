@@ -276,10 +276,6 @@ function! s:CustomStatus(bufnum) abort
     return ''
 endfunction
 
-function! s:IsSmallWindow(winnum) abort
-    return winwidth(a:winnum) < s:small_window_width
-endfunction
-
 function! s:GetCurrentDir() abort
     let dir = fnamemodify(getcwd(), ':~:.')
     if empty(dir)
@@ -404,8 +400,9 @@ function! s:FormatBranch(branch, filename_size, winwidth) abort
     return branch
 endfunction
 
-function! s:FileNameStatus(winnum, bufnum) abort
-    return s:FormatFileName(s:GetFileName(a:bufnum), winwidth(a:winnum), 50) . s:GetFileFlags(a:bufnum)
+function! s:FileNameStatus(bufnum, ...) abort
+    let winwidth = get(a:, 1, 100)
+    return s:FormatFileName(s:GetFileName(a:bufnum), winwidth, 50) . s:GetFileFlags(a:bufnum)
 endfunction
 
 " Copied from https://github.com/ahmedelgabri/dotfiles/blob/master/files/vim/.vim/autoload/statusline.vim
@@ -516,7 +513,7 @@ endfunction
 
 function! s:PasteStatus() abort
     if &paste
-        return w:is_small_window ? s:symbols.paste : 'PASTE'
+        return s:symbols.paste
     endif
     return ''
 endfunction
@@ -537,8 +534,11 @@ function! s:ActiveStatusLine(winnum) abort
         return stl
     endif
 
-    let filename = s:FileNameStatus(a:winnum, bufnum)
     let l:winwidth = winwidth(a:winnum)
+
+    let show_more_info = (l:winwidth >= s:small_window_width)
+
+    let filename = s:FileNameStatus(bufnum, l:winwidth)
 
     return s:BuildStatus(
                 \ [
@@ -547,11 +547,11 @@ function! s:ActiveStatusLine(winnum) abort
                 \       [s:ClipboardStatus(), s:PasteStatus()],
                 \       filename,
                 \   ],
-                \   !w:is_small_window ? s:FileSizeStatus() : '',
+                \   show_more_info ? s:FileSizeStatus() : '',
                 \ ],
                 \ [
                 \   [
-                \       !w:is_small_window ? s:IndentationStatus(bufnum) : '',
+                \       show_more_info ? s:IndentationStatus(bufnum) : '',
                 \       s:FileInfoStatus(bufnum),
                 \   ],
                 \   s:SpellStatus(),
@@ -568,12 +568,10 @@ function! s:InactiveStatusLine(winnum) abort
     endif
 
     " « plugin/statusline.vim[+] »
-    return s:BuildLeftStatus(s:Wrap(s:FileNameStatus(a:winnum, bufnum)))
+    return s:BuildLeftStatus(s:Wrap(s:FileNameStatus(bufnum)))
 endfunction
 
 function! StatusLine(current, winnum) abort
-    let w:is_small_window = s:IsSmallWindow(a:winnum)
-
     if a:current
         let stl = s:HiSection('ActiveStatus')
         let stl .= s:ActiveStatusLine(a:winnum)
