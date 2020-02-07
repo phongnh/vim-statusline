@@ -573,18 +573,19 @@ endfunction
 
 function! StatusLine(current, winnum) abort
     if a:current
-        let stl = s:HiSection('ActiveStatus')
-        let stl .= s:ActiveStatusLine(a:winnum)
+        return s:HiSection('ActiveStatus') . s:ActiveStatusLine(a:winnum)
     else
-        let stl = s:HiSection('InactiveStatus')
-        let stl .= s:InactiveStatusLine(a:winnum)
+        return s:HiSection('InactiveStatus') . s:InactiveStatusLine(a:winnum)
     endif
-
-    return stl
 endfunction
 
 function! AutoStatusLine(current, winid) abort
-    return StatusLine(a:current, win_id2win(a:winid))
+    let l:current = a:current
+    let winnum = win_id2win(a:winid)
+    if winnum == winnr() && !l:current
+        let l:current = 1
+    endif
+    return StatusLine(l:current, winnum)
 endfunction
 
 function! s:TabPlaceholder(tab) abort
