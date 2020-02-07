@@ -538,7 +538,7 @@ function! s:ActiveStatusLine(winnum) abort
 
     let show_more_info = (l:winwidth >= s:small_window_width)
 
-    let filename = s:FileNameStatus(bufnum, l:winwidth)
+    let filename = s:FileNameStatus(bufnum, l:winwidth - 2)
 
     return s:BuildStatus(
                 \ [
