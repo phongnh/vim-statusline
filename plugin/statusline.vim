@@ -318,7 +318,7 @@ function! s:FormatFileName(fname, winwidth, max_width) abort
     if strlen(fname) > a:winwidth && (fname[0] =~ '\~\|/')
         let fname = s:ShortenPath(fname)
     endif
-    
+
     let max_width = min([a:winwidth, a:max_width])
 
     if strlen(fname) > max_width
@@ -377,26 +377,27 @@ function! s:GetGitBranch() abort
     return branch
 endfunction
 
-function! s:IsDisplayableBranch(branch, filename, winwidth) abort
-    return strlen(a:branch) < a:winwidth && (strlen(a:branch) + strlen(a:filename) + 3) < a:winwidth
+function! s:IsDisplayableBranch(branch_size, filename_size, winwidth) abort
+    return a:branch_size < a:winwidth && (a:branch_size + a:filename_size + 3) < a:winwidth
 endfunction
 
-function! s:FormatBranch(branch, filename, winwidth) abort
+function! s:FormatBranch(branch, filename_size, winwidth) abort
     let branch = a:branch
+    let branch_size = strlen(branch)
 
-    if !s:IsDisplayableBranch(branch, a:filename, a:winwidth)
+    if !s:IsDisplayableBranch(branch_size, a:filename_size, a:winwidth)
         let branch = s:ShortenPath(branch)
     endif
 
-    if !s:IsDisplayableBranch(branch, a:filename, a:winwidth)
+    if !s:IsDisplayableBranch(branch_size, a:filename_size, a:winwidth)
         let branch = split(branch, '/')[-1]
     endif
 
-    if !s:IsDisplayableBranch(branch, a:filename, a:winwidth) && strlen(branch) > 30
+    if !s:IsDisplayableBranch(branch_size, a:filename_size, a:winwidth) && branch_size > 30
         let branch = strcharpart(branch, 0, 29) . s:symbols.ellipsis
     endif
 
-    if !s:IsDisplayableBranch(branch, a:filename, a:winwidth)
+    if !s:IsDisplayableBranch(branch_size, a:filename_size, a:winwidth)
         let branch = ''
     endif
 
@@ -492,12 +493,12 @@ function! s:FileInfoStatus(bufnum) abort
     return join(parts, ' ')
 endfunction
 
-function! s:GitBranchStatus(winnum, filename) abort
-    if g:statusline_show_git_branch && !w:is_small_window
+function! s:GitBranchStatus(winwidth, filename_size) abort
+    if g:statusline_show_git_branch && a:winwidth >= s:small_window_width
         let branch = s:GetGitBranch()
 
         if strlen(branch)
-            let branch = s:FormatBranch(branch, a:filename, winwidth(a:winnum) - 2)
+            let branch = s:FormatBranch(branch, a:filename_size, a:winwidth - 2)
         endif
 
         return branch
@@ -537,11 +538,12 @@ function! s:ActiveStatusLine(winnum) abort
     endif
 
     let filename = s:FileNameStatus(a:winnum, bufnum)
+    let l:winwidth = winwidth(a:winnum)
 
     return s:BuildStatus(
                 \ [
                 \   [
-                \       s:GitBranchStatus(a:winnum, filename),
+                \       s:GitBranchStatus(l:winwidth, strlen(filename)),
                 \       [s:ClipboardStatus(), s:PasteStatus()],
                 \       filename,
                 \   ],
