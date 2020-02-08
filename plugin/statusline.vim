@@ -602,15 +602,6 @@ function! StatusLine(current, winnum) abort
     endif
 endfunction
 
-function! AutoStatusLine(current, winid) abort
-    let l:current = a:current
-    let winnum = win_id2win(a:winid)
-    if winnum == winnr() && !l:current
-        let l:current = 1
-    endif
-    return StatusLine(l:current, winnum)
-endfunction
-
 function! s:TabPlaceholder(tab) abort
     return s:HiSection('TabPlaceholder') . printf('%%%d  %s %%*', a:tab, s:symbols.ellipsis)
 endfunction
@@ -706,6 +697,16 @@ function! Tabline() abort
     endif
 
     return stl
+endfunction
+
+function! AutoStatusLine(current, winid) abort
+    let winnum = win_id2win(a:winid)
+
+    if !a:current && winnum > 0 && winnum == winnr()
+        return StatusLine(1, winnum)
+    endif
+
+    return StatusLine(a:current, winnum)
 endfunction
 
 function! s:RefreshStatusLine() abort
