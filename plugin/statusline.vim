@@ -207,19 +207,19 @@ function! s:BuildStatus(left_parts, ...) abort
 endfunction
 
 function! s:CustomMode(bufnum) abort
-    let ft = s:GetBufferType(a:bufnum)
+    let fname = fnamemodify(bufname(a:bufnum), ':t')
 
-    if has_key(s:filetype_modes, ft)
-        return s:filetype_modes[ft]
+    if fname =~? '^NrrwRgn' && exists('b:nrrw_instn')
+        return printf('%s#%d', 'NrrwRgn', b:nrrw_instn)
     endif
 
-    let fname = fnamemodify(bufname(a:bufnum), ':t')
     if has_key(s:filename_modes, fname)
         return s:filename_modes[fname]
     endif
 
-    if fname =~? '^NrrwRgn' && exists('b:nrrw_instn')
-        return printf('%s#%d', 'NrrwRgn', b:nrrw_instn)
+    let ft = s:GetBufferType(a:bufnum)
+    if has_key(s:filetype_modes, ft)
+        return s:filetype_modes[ft]
     endif
 
     return ''
@@ -228,25 +228,12 @@ endfunction
 function! s:CustomStatus(bufnum) abort
     let l:mode = ''
 
-    let ft = s:GetBufferType(a:bufnum)
-    if has_key(s:filetype_modes, ft)
-        let l:mode = s:filetype_modes[ft]
+    let fname = fnamemodify(bufname(a:bufnum), ':t')
 
-        if ft ==# 'terminal'
-            return s:BuildStatus([ [l:mode, '%f'] ])
-        endif
-
-        if ft ==# 'help'
-            return s:BuildStatus([ [l:mode, fnamemodify(bufname(a:bufnum), ':p')] ])
-        endif
-
-        if ft ==# 'qf'
-            let l:qf_title = s:Strip(get(w:, 'quickfix_title', ''))
-            return s:BuildStatus([ [l:mode, l:qf_title] ])
-        endif
+    if fname =~? '^NrrwRgn' && exists('b:nrrw_instn')
+        return s:NrrwRgnStatus()
     endif
 
-    let fname = fnamemodify(bufname(a:bufnum), ':t')
     if has_key(s:filename_modes, fname)
         let l:mode = s:filename_modes[fname]
 
@@ -268,8 +255,22 @@ function! s:CustomStatus(bufnum) abort
         endif
     endif
 
-    if fname =~? '^NrrwRgn' && exists('b:nrrw_instn')
-        return s:NrrwRgnStatus()
+    let ft = s:GetBufferType(a:bufnum)
+    if has_key(s:filetype_modes, ft)
+        let l:mode = s:filetype_modes[ft]
+
+        if ft ==# 'terminal'
+            return s:BuildStatus([ [l:mode, '%f'] ])
+        endif
+
+        if ft ==# 'help'
+            return s:BuildStatus([ [l:mode, fnamemodify(bufname(a:bufnum), ':p')] ])
+        endif
+
+        if ft ==# 'qf'
+            let l:qf_title = s:Strip(get(w:, 'quickfix_title', ''))
+            return s:BuildStatus([ [l:mode, l:qf_title] ])
+        endif
     endif
 
     if strlen(l:mode)
@@ -280,18 +281,22 @@ function! s:CustomStatus(bufnum) abort
 endfunction
 
 function! s:NrrwRgnStatus() abort
-    let l:mode = [ printf('%s#%d', 'NrrwRgn', b:nrrw_instn) ]
+    if exists(':WidenRegion') == 2
+        let l:mode = [ printf('%s#%d', 'NrrwRgn', b:nrrw_instn) ]
 
-    let dict = exists('*nrrwrgn#NrrwRgnStatus()') ?  nrrwrgn#NrrwRgnStatus() : {}
+        let dict = exists('*nrrwrgn#NrrwRgnStatus()') ?  nrrwrgn#NrrwRgnStatus() : {}
 
-    if !empty(dict)
-        let fname = fnamemodify(dict.fullname, ':~:.')
-        call add(l:mode, fname)
-    elseif get(b:, 'orig_buf', 0)
-        call add(l:mode, bufname(b:orig_buf))
+        if !empty(dict)
+            let fname = fnamemodify(dict.fullname, ':~:.')
+            call add(l:mode, fname)
+        elseif get(b:, 'orig_buf', 0)
+            call add(l:mode, bufname(b:orig_buf))
+        endif
+
+        return s:BuildStatus([ l:mode ])
     endif
 
-    return s:BuildStatus([ l:mode ])
+    return ''
 endfunction
 
 function! s:GetCurrentDir() abort
