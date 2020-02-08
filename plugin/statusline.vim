@@ -591,7 +591,7 @@ function! s:InactiveStatusLine(winnum) abort
     endif
 
     " « plugin/statusline.vim[+] »
-    return s:BuildLeftStatus(s:Wrap(s:FileNameStatus(bufnum)))
+    return s:BuildLeftStatus(s:Wrap(s:FileNameStatus(bufnum, winwidth(a:winnum) - 2)))
 endfunction
 
 function! StatusLine(current, winnum) abort
