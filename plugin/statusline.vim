@@ -769,7 +769,7 @@ function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) a
 endfunction
 
 function! CtrlPProgressStatusLine(len) abort
-    return s:BuildStatus([ a:len ], [ s:GetCurrentDir() ])
+    return s:BuildStatus([ a:len ])
 endfunction
 
 " Tagbar Integration
