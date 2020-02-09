@@ -720,11 +720,6 @@ endfunction
 
 function! AutoStatusLine(current, winid) abort
     let winnum = win_id2win(a:winid)
-
-    if !a:current && winnum > 0 && winnum == winnr()
-        return StatusLine(1, winnum)
-    endif
-
     return StatusLine(a:current, winnum)
 endfunction
 
