@@ -209,8 +209,11 @@ endfunction
 function! s:CustomMode(bufnum) abort
     let fname = fnamemodify(bufname(a:bufnum), ':t')
 
-    if fname =~? '^NrrwRgn' && exists('b:nrrw_instn')
-        return printf('%s#%d', 'NrrwRgn', b:nrrw_instn)
+    if fname =~? '^NrrwRgn'
+        let nrrw_rgn_status = s:NrrwRgnStatus(0)
+        if strlen(nrrw_rgn_status)
+            return nrrw_rgn_status
+        endif
     endif
 
     if has_key(s:filename_modes, fname)
@@ -231,7 +234,10 @@ function! s:CustomStatus(bufnum) abort
     let fname = fnamemodify(bufname(a:bufnum), ':t')
 
     if fname =~? '^NrrwRgn' && exists('b:nrrw_instn')
-        return s:NrrwRgnStatus()
+        let nrrw_rgn_status = s:NrrwRgnStatus()
+        if strlen(nrrw_rgn_status)
+            return nrrw_rgn_status
+        endif
     endif
 
     if has_key(s:filename_modes, fname)
@@ -280,8 +286,10 @@ function! s:CustomStatus(bufnum) abort
     return ''
 endfunction
 
-function! s:NrrwRgnStatus() abort
+function! s:NrrwRgnStatus(...) abort
     if exists(':WidenRegion') == 2
+        let active = get(a:, 1, 1)
+
         let l:mode = [ printf('%s#%d', 'NrrwRgn', b:nrrw_instn) ]
 
         let dict = exists('*nrrwrgn#NrrwRgnStatus()') ?  nrrwrgn#NrrwRgnStatus() : {}
@@ -291,9 +299,20 @@ function! s:NrrwRgnStatus() abort
             call add(l:mode, fname)
         elseif get(b:, 'orig_buf', 0)
             call add(l:mode, bufname(b:orig_buf))
+        else
+            if get(b:, 'orig_buf', 0)
+                call add(l:mode, bufname(b:orig_buf))
+            else
+                let l:mode = substitute(bufname('%'), '^Nrrwrgn_\zs.*\ze_\d\+$', submatch(0), ''))
+                let l:mode = substitute(l:mode, '__', '#', '')
+            endif
         endif
 
-        return s:BuildStatus([ l:mode ])
+        if active
+            return s:BuildStatus([ l:mode ])
+        else
+            return s:BuildLeftStatus(l:mode)
+        endif
     endif
 
     return ''
