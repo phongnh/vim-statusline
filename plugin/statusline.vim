@@ -532,12 +532,15 @@ function! s:FileInfoStatus(bufnum) abort
     return join(parts, ' ')
 endfunction
 
-function! s:GitBranchStatus(winwidth, filename_size) abort
-    if g:statusline_show_git_branch && a:winwidth >= s:small_window_width
+function! s:GitBranchStatus(...) abort
+    let l:winwidth = get(a:, 1, 100)
+
+    if g:statusline_show_git_branch && l:winwidth >= s:small_window_width
         let branch = s:GetGitBranch()
 
         if strlen(branch)
-            let branch = s:FormatBranch(branch, a:filename_size, a:winwidth - 2)
+            let filename_size = get(a:, 2, 30)
+            let branch = s:FormatBranch(branch, filename_size, l:winwidth - 2)
         endif
 
         return branch
