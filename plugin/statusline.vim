@@ -303,7 +303,7 @@ function! s:NrrwRgnStatus(...) abort
             if get(b:, 'orig_buf', 0)
                 call add(l:mode, bufname(b:orig_buf))
             else
-                let l:mode = substitute(bufname('%'), '^Nrrwrgn_\zs.*\ze_\d\+$', submatch(0), ''))
+                let l:mode = substitute(bufname('%'), '^Nrrwrgn_\zs.*\ze_\d\+$', submatch(0), '')
                 let l:mode = substitute(l:mode, '__', '#', '')
             endif
         endif
