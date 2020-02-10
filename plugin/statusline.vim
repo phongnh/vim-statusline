@@ -160,17 +160,13 @@ function! s:ParseFillList(list) abort
     return s:RemoveEmptyElement(l:list)
 endfunction
 
-function! s:StatusSeparator() abort
-    return s:HiSection('StatusSeparator') . '' . '%=' . ''
-endfunction
-
-function! s:BuildMode(parts, sep) abort
+function! s:BuildMode(parts, ...) abort
     let l:parts = s:ParseModeList(a:parts)
     if empty(l:parts)
         return ''
     endif
-    let l:sep = empty(a:sep) ? ' ' : a:sep
-    return ' %<' . join(l:parts, l:sep) . ' '
+    let l:sep = get(a:, 1, s:symbols.left_sep)
+    return ' ' . join(l:parts, l:sep) . ' '
 endfunction
 
 function! s:BuildFill(parts, ...) abort
@@ -179,26 +175,21 @@ function! s:BuildFill(parts, ...) abort
         return ''
     endif
     let l:sep = get(a:, 1, s:symbols.fill_sep)
-    return s:HiSection('StatusSeparator') . ' ' . join(l:parts, l:sep) . ' '
-endfunction
-
-function! s:BuildLeftStatus(mode, ...) abort
-    return s:BuildMode(a:mode, s:symbols.left_sep) . '%*' . s:BuildFill(get(a:, 1, []))
-endfunction
-
-function! s:BuildRightStatus(mode, ...) abort
-    return s:BuildFill(get(a:, 1, [])) . '%*' . s:BuildMode(a:mode, s:symbols.right_sep)
+    return ' ' . join(l:parts, l:sep) . ' '
 endfunction
 
 function! s:BuildStatus(left_parts, ...) abort
     let left_parts  = s:ParseList(a:left_parts)
     let right_parts = s:ParseList(get(a:, 1, []))
 
-    let stl = s:BuildLeftStatus(left_parts[0], left_parts[1:])
-    let stl .= s:StatusSeparator()
+    let stl = ' %<'
+    let stl .= s:BuildMode(left_parts[0], s:symbols.left_sep)
+    let stl .= s:HiSection('StatusSeparator')
+    let stl .= s:BuildFill(left_parts[1:])
+    let stl .= '%='
 
     if len(right_parts) > 0
-        let stl .= s:BuildRightStatus(right_parts[0], right_parts[1:])
+        let stl .= s:BuildFill(right_parts[1:]) . '%*%<' . s:BuildMode(right_parts[0], s:symbols.right_sep)
     endif
 
     return stl
@@ -309,7 +300,7 @@ function! s:NrrwRgnStatus(...) abort
         if active
             return s:BuildStatus([ l:mode ])
         else
-            return s:BuildLeftStatus(l:mode)
+            return s:BuildMode(l:mode)
         endif
     endif
 
@@ -607,7 +598,7 @@ function! s:InactiveStatusLine(winnum) abort
     endif
 
     " « plugin/statusline.vim[+] »
-    return s:BuildLeftStatus(s:Wrap(s:FileNameStatus(bufnum, winwidth(a:winnum) - 2)))
+    return s:BuildMode(s:Wrap(s:FileNameStatus(bufnum, winwidth(a:winnum) - 2)))
 endfunction
 
 function! StatusLine(current, winnum) abort
@@ -764,7 +755,7 @@ function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) a
     let item    = s:HiSection('CtrlP') . ' ' . s:Wrap(a:item) . ' %*' . s:HiSection('StatusSeparator')
     return s:BuildStatus(
                 \ [
-                \   get(s:filetype_modes, 'ctrlp'),
+                \   s:filename_modes['ControlP'],
                 \   [
                 \       a:prev,
                 \       item,
