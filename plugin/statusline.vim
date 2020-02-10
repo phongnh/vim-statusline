@@ -585,7 +585,7 @@ function! StatusLineRightMode(...) abort
 
     return s:BuildRightMode([
                 \   show_more_info ? s:IndentationStatus() : '',
-                \   s:FileInfoStatus(),
+                \   s:FileInfoStatus(l:winwidth <= s:xsmall_window_width),
                 \ ])
 endfunction
 
