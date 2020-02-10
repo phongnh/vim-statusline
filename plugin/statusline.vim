@@ -271,27 +271,29 @@ function! s:GetGitBranch() abort
     return branch
 endfunction
 
-function! s:IsDisplayableBranch(branch_size, filename_size, winwidth) abort
-    return a:branch_size < a:winwidth && (a:branch_size + a:filename_size + 3) < a:winwidth
-endfunction
-
-function! s:FormatBranch(branch, filename_size, winwidth) abort
+function! s:ShortenBranch(branch, length) abort
     let branch = a:branch
 
-    if !s:IsDisplayableBranch(strlen(branch), a:filename_size, a:winwidth)
+    if strlen(branch) > a:length
         let branch = s:ShortenPath(branch)
     endif
 
-    if !s:IsDisplayableBranch(strlen(branch), a:filename_size, a:winwidth)
-        let branch = split(branch, '/')[-1]
+    if strlen(branch) > a:length
+        let branch = fnamemodify(branch, ':t')
     endif
 
-    if !s:IsDisplayableBranch(strlen(branch), a:filename_size, a:winwidth) && strlen(branch) > 30
+    return branch
+endfunction
+
+function! s:FormatBranch(branch, winwidth) abort
+    if a:winwidth > s:normal_window_width
+        return s:ShortenBranch(a:branch, 50)
+    endif
+
+    let branch = s:ShortenBranch(a:branch, 30)
+
+    if strlen(branch) > 30
         let branch = strcharpart(branch, 0, 29) . s:symbols.ellipsis
-    endif
-
-    if !s:IsDisplayableBranch(strlen(branch), a:filename_size, a:winwidth)
-        let branch = ''
     endif
 
     return branch
@@ -390,14 +392,7 @@ function! s:GitBranchStatus(...) abort
     let l:winwidth = get(a:, 1, 100)
 
     if g:statusline_show_git_branch && l:winwidth >= s:small_window_width
-        let branch = s:GetGitBranch()
-
-        if strlen(branch)
-            let filename_size = get(a:, 2, 30)
-            let branch = s:FormatBranch(branch, filename_size, l:winwidth - 2)
-        endif
-
-        return branch
+        return s:FormatBranch(s:GetGitBranch(), l:winwidth)
     endif
 
     return ''
@@ -550,12 +545,10 @@ function! StatusLineActiveMode(...) abort
     let l:winwidth = winwidth(get(a:, 1, 0))
     let show_more_info = (l:winwidth >= s:small_window_width)
 
-    let filename = s:FileNameStatus(l:winwidth - 2)
-
     return s:BuildMode([
-                \   s:GitBranchStatus(l:winwidth, strlen(filename)),
+                \   s:GitBranchStatus(l:winwidth),
                 \   [s:ClipboardStatus(), s:PasteStatus()],
-                \   filename,
+                \   s:FileNameStatus(l:winwidth - 2)
                 \ ])
 endfunction
 
@@ -635,7 +628,7 @@ function! StatusLine(winnum) abort
                     \ ], '')
     else
         return s:HiSection('InactiveStatus') .
-                    \ '%<' . 
+                    \ '%<' .
                     \ s:BuildGroup(printf('StatusLineInactiveMode(%d)', a:winnum))
     endif
 endfunction
