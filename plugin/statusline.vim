@@ -339,21 +339,21 @@ function! s:IndentationStatus(...) abort
 endfunction
 
 function! s:FileEncodingStatus() abort
-    let encoding = strlen(&fileencoding) ? &fileencoding : &encoding
+    let l:encoding = strlen(&fileencoding) ? &fileencoding : &encoding
     " Show encoding only if it is not utf-8
-    if empty(encoding) || encoding ==# 'utf-8'
+    if empty(l:encoding) || l:encoding ==# 'utf-8'
         return ''
     endif
-    return printf('[%s]', encoding)
+    return printf('[%s]', l:encoding)
 endfunction
 
 function! s:FileEncodingAndFormatStatus() abort
-    let encoding = strlen(&fileencoding) ? &fileencoding : &encoding
+    let l:encoding = strlen(&fileencoding) ? &fileencoding : &encoding
 
-    if strlen(encoding) && strlen(&fileformat)
-        let stl = printf('%s[%s]', encoding, &fileformat)
-    elseif strlen(encoding)
-        let stl = encoding
+    if strlen(l:encoding) && strlen(&fileformat)
+        let stl = printf('%s[%s]', l:encoding, &fileformat)
+    elseif strlen(l:encoding)
+        let stl = l:encoding
     else
         let stl = printf('[%s]', &fileformat)
     endif
