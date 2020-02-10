@@ -389,9 +389,8 @@ function! s:FileInfoStatus(...) abort
 endfunction
 
 function! s:GitBranchStatus(...) abort
-    let l:winwidth = get(a:, 1, 100)
-
-    if g:statusline_show_git_branch && l:winwidth >= s:small_window_width
+    if g:statusline_show_git_branch
+        let l:winwidth = get(a:, 1, 100)
         return s:FormatBranch(s:GetGitBranch(), l:winwidth)
     endif
 
@@ -544,9 +543,9 @@ function! StatusLineActiveMode(...) abort
     let show_more_info = (l:winwidth >= s:small_window_width)
 
     return s:BuildMode([
-                \   s:GitBranchStatus(l:winwidth),
-                \   [s:ClipboardStatus(), s:PasteStatus()],
-                \   s:FileNameStatus(l:winwidth - 2)
+                \ show_more_info ? s:GitBranchStatus(l:winwidth) : '',
+                \ [s:ClipboardStatus(), s:PasteStatus()],
+                \ s:FileNameStatus(l:winwidth - 2)
                 \ ])
 endfunction
 
