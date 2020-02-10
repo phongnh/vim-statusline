@@ -80,8 +80,6 @@ let s:filename_modes = {
             \ }
 
 let s:filetype_modes = {
-            \ 'ctrlp':             'CtrlP',
-            \ 'leaderf':           'LeaderF',
             \ 'netrw':             'NetrwTree',
             \ 'nerdtree':          'NERDTree',
             \ 'startify':          'Startify',
