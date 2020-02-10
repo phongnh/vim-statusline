@@ -275,21 +275,20 @@ endfunction
 
 function! s:FormatBranch(branch, filename_size, winwidth) abort
     let branch = a:branch
-    let branch_size = strlen(branch)
 
-    if !s:IsDisplayableBranch(branch_size, a:filename_size, a:winwidth)
+    if !s:IsDisplayableBranch(strlen(branch), a:filename_size, a:winwidth)
         let branch = s:ShortenPath(branch)
     endif
 
-    if !s:IsDisplayableBranch(branch_size, a:filename_size, a:winwidth)
+    if !s:IsDisplayableBranch(strlen(branch), a:filename_size, a:winwidth)
         let branch = split(branch, '/')[-1]
     endif
 
-    if !s:IsDisplayableBranch(branch_size, a:filename_size, a:winwidth) && branch_size > 30
+    if !s:IsDisplayableBranch(strlen(branch), a:filename_size, a:winwidth) && strlen(branch) > 30
         let branch = strcharpart(branch, 0, 29) . s:symbols.ellipsis
     endif
 
-    if !s:IsDisplayableBranch(branch_size, a:filename_size, a:winwidth)
+    if !s:IsDisplayableBranch(strlen(branch), a:filename_size, a:winwidth)
         let branch = ''
     endif
 
