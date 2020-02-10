@@ -3,7 +3,7 @@
 " Version:    0.1.0
 
 if exists('g:loaded_vim_statusline')
-    finish
+    " finish
 endif
 
 let g:loaded_vim_statusline = 1
@@ -329,10 +329,10 @@ function! s:FileSizeStatus() abort
 endfunction
 
 function! s:IndentationStatus(...) abort
-    let compact = get(a:, 1, 0)
     let shiftwidth = exists('*shiftwidth') ? shiftwidth() : &shiftwidth
+    let compact = get(a:, 1, 0)
     if compact
-        return printf(&expandtab ? 'SPC:%d' : 'TAB:%d', shiftwidth)
+        return printf(&expandtab ? 'SPC: %d' : 'TAB: %d', shiftwidth)
     else
         return printf(&expandtab ? 'Spaces: %d' : 'Tab Size: %d', shiftwidth)
     endif
@@ -524,6 +524,10 @@ function! s:NrrwRgnStatus(...) abort
     return ''
 endfunction
 
+function! s:IsCompact(winwidth) abort
+    return &spell || &paste || strlen(s:ClipboardStatus()) || a:winwidth <= s:xsmall_window_width
+endfunction
+
 function! s:BuildGroup(exp) abort
     if a:exp =~ '^%'
         return '%( ' . a:exp . ' %)'
@@ -572,10 +576,11 @@ function! StatusLineRightMode(...) abort
 
     let l:winwidth = winwidth(get(a:, 1, 0))
     let show_more_info = (l:winwidth >= s:small_window_width)
+    let compact = s:IsCompact(l:winwidth)
 
     return s:BuildRightMode([
-                \   show_more_info ? s:IndentationStatus() : '',
-                \   s:FileInfoStatus(l:winwidth <= s:xsmall_window_width),
+                \ show_more_info ? s:IndentationStatus(compact) : '',
+                \ s:FileInfoStatus(compact),
                 \ ])
 endfunction
 
