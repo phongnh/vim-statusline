@@ -12,8 +12,8 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Settings
-let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
 let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
+let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
 let g:statusline_show_file_size        = get(g:, 'statusline_show_file_size', 1)
 let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 1)
 
@@ -21,7 +21,9 @@ let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 1)
 let g:NERDTreeStatusline = -1
 
 " Window width
-let s:small_window_width = 60
+let s:xsmall_window_width = 60
+let s:small_window_width  = 80
+let s:normal_window_width = 100
 
 " Number of displayable tabs
 let s:displayable_tab_count = 5
@@ -417,7 +419,7 @@ endfunction
 
 function! s:SpellStatus() abort
     if &spell
-        return printf('%s', toupper(substitute(&spelllang, ',', '/', 'g')))
+        return toupper(substitute(&spelllang, ',', '/', 'g'))
     endif
     return ''
 endfunction
