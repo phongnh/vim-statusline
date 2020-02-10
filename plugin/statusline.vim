@@ -419,109 +419,107 @@ function! s:SpellStatus() abort
     return ''
 endfunction
 
+let s:statusline_last_custom_mode_time = reltime()
+
 function! s:CustomMode() abort
+    if has_key(b:, 'custom_statusline') && reltimefloat(reltime(s:statusline_last_custom_mode_time)) < 0.5
+        return b:statusline_custom_mode
+    endif
+    let b:statusline_custom_mode = s:FetchCustomMode()
+    let s:statusline_last_custom_mode_time = reltime()
+    return b:statusline_custom_mode
+endfunction
+
+function! s:FetchCustomMode() abort
     let fname = expand('%:t')
+
+    if has_key(s:filename_modes, fname)
+        let result = {
+                    \ 'custom': 1,
+                    \ 'name': s:filename_modes[fname],
+                    \ 'type': 'name',
+                    \ }
+
+        if fname ==# '__CtrlSF__'
+            return extend(result, {
+                        \ 'lmode': substitute(ctrlsf#utils#SectionB(), 'Pattern: ', '', ''),
+                        \ 'lfill': ctrlsf#utils#SectionC(),
+                        \ 'rmode': ctrlsf#utils#SectionX(),
+                        \ })
+        endif
+
+        if fname ==# '__CtrlSFPreview__'
+            let result['lmode'] = ctrlsf#utils#PreviewSectionC()
+            return result
+        endif
+
+        return result
+    endif
 
     if fname =~? '^NrrwRgn'
         let nrrw_rgn_status = s:NrrwRgnStatus()
         if strlen(nrrw_rgn_status)
-            return nrrw_rgn_status
-        endif
-    endif
-
-    if has_key(s:filename_modes, fname)
-        return s:filename_modes[fname]
-    endif
-
-    let ft = s:GetBufferType()
-    if has_key(s:filetype_modes, ft)
-        return s:filetype_modes[ft]
-    endif
-
-    return ''
-endfunction
-
-function! s:HasCustomStatus() abort
-    return strlen(s:CustomMode())
-endfunction
-
-function! s:CustomStatus() abort
-    let l:mode = ''
-
-    let fname = expand('%:t')
-
-    if fname =~? '^NrrwRgn' && exists('b:nrrw_instn')
-        let nrrw_rgn_status = s:NrrwRgnStatus()
-        if strlen(nrrw_rgn_status)
-            return nrrw_rgn_status
-        endif
-    endif
-
-    if has_key(s:filename_modes, fname)
-        let l:mode = s:filename_modes[fname]
-
-        if fname ==# '__CtrlSF__'
-            return s:BuildMode(
-                        \ [
-                        \   l:mode,
-                        \   substitute(ctrlsf#utils#SectionB(), 'Pattern: ', '', '')
-                        \ ])
-        endif
-
-        if fname ==# '__CtrlSFPreview__'
-            return s:BuildMode(
-                        \ [
-                        \   l:mode,
-                        \   ctrlsf#utils#PreviewSectionC()
-                        \ ])
+            return {
+                        \ 'custom': 1,
+                        \ 'name': nrrw_rgn_status,
+                        \ 'type': 'name',
+                        \ }
         endif
     endif
 
     let ft = s:GetBufferType()
     if has_key(s:filetype_modes, ft)
-        let l:mode = s:filetype_modes[ft]
+        let result = {
+                    \ 'custom': 1,
+                    \ 'name': s:filetype_modes[ft],
+                    \ 'type': 'filetype',
+                    \ }
 
         if ft ==# 'terminal'
-            return s:BuildMode([ l:mode, expand('%') ])
+            let result['lmode'] = expand('%')
+            return result
         endif
 
         if ft ==# 'help'
-            return s:BuildMode([ l:mode, expand('%:p') ])
+            let result['lmode'] = expand('%:p')
+            return result
         endif
 
         if ft ==# 'qf'
             if getwininfo(win_getid())[0]['loclist']
-                let l:mode = 'Location'
+                let result['name'] = 'Location'
             endif
-            let l:qf_title = s:Strip(get(w:, 'quickfix_title', ''))
-            return s:BuildMode([ l:mode, l:qf_title ])
+            let result['lmode'] = s:Strip(get(w:, 'quickfix_title', ''))
+            return result
         endif
+
+        return result
     endif
 
-    if strlen(l:mode)
-        return s:BuildMode(l:mode)
-    endif
-
-    return ''
+    return { 'custom': 0 }
 endfunction
 
 function! s:NrrwRgnStatus(...) abort
     if exists(':WidenRegion') == 2
-        let l:mode = [ printf('%s#%d', 'NrrwRgn', b:nrrw_instn) ]
+        let l:modes = []
+
+        if exists('b:nrrw_instn')
+            call add(l:modes, printf('%s#%d', 'NrrwRgn', b:nrrw_instn))
+        else
+            let l:mode = substitute(bufname('%'), '^Nrrwrgn_\zs.*\ze_\d\+$', submatch(0), '')
+            let l:mode = substitute(l:mode, '__', '#', '')
+            call add(l:modes, l:mode)
+        endif
 
         let dict = exists('*nrrwrgn#NrrwRgnStatus()') ?  nrrwrgn#NrrwRgnStatus() : {}
 
         if !empty(dict)
-            let fname = fnamemodify(dict.fullname, ':~:.')
-            call add(l:mode, fname)
+            call add(l:modes, fnamemodify(dict.fullname, ':~:.'))
         elseif get(b:, 'orig_buf', 0)
-            call add(l:mode, bufname(b:orig_buf))
-        else
-            let l:mode = substitute(bufname('%'), '^Nrrwrgn_\zs.*\ze_\d\+$', submatch(0), '')
-            let l:mode = substitute(l:mode, '__', '#', '')
+            call add(l:modes, bufname(b:orig_buf))
         endif
 
-        return s:BuildMode(l:mode)
+        return s:BuildMode(l:modes)
     endif
 
     return ''
@@ -537,9 +535,9 @@ endfunction
 
 function! StatusLineActiveMode(...) abort
     " custom status
-    let stl = s:CustomStatus()
-    if strlen(stl)
-        return stl
+    let l:mode = s:CustomMode()
+    if l:mode['custom']
+        return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode', '') ])
     endif
 
     let l:winwidth = winwidth(get(a:, 1, 0))
@@ -553,13 +551,9 @@ function! StatusLineActiveMode(...) abort
 endfunction
 
 function! StatusLineLeftFill(...) abort
-    if s:HasCustomStatus()
-        let fname = expand('%:t')
-        if fname ==# '__CtrlSF__'
-            return ctrlsf#utils#SectionC()
-        endif
-
-        return ''
+    let l:mode = s:CustomMode()
+    if l:mode['custom']
+        return get(l:mode, 'lfill', '')
     endif
 
     let l:winwidth = winwidth(get(a:, 1, 0))
@@ -571,13 +565,9 @@ function! StatusLineLeftFill(...) abort
 endfunction
 
 function! StatusLineRightMode(...) abort
-    if s:HasCustomStatus()
-        let fname = expand('%:t')
-        if fname ==# '__CtrlSF__'
-            return ctrlsf#utils#SectionX()
-        endif
-
-        return ''
+    let l:mode = s:CustomMode()
+    if l:mode['custom']
+        return get(l:mode, 'rmode', '')
     endif
 
     let l:winwidth = winwidth(get(a:, 1, 0))
@@ -590,6 +580,11 @@ function! StatusLineRightMode(...) abort
 endfunction
 
 function! StatusLineRightFill(...) abort
+    let l:mode = s:CustomMode()
+    if l:mode['custom']
+        return get(l:mode, 'rfill', '')
+    endif
+
     let l:winwidth = winwidth(get(a:, 1, 0))
     let show_more_info = (l:winwidth >= s:small_window_width)
 
@@ -602,9 +597,9 @@ function! StatusLineInactiveMode(...) abort
     let l:winwidth = winwidth(get(a:, 1, 0))
 
     " show only custom mode in inactive buffer
-    let stl = s:CustomMode()
-    if strlen(stl)
-        return stl
+    let l:mode = s:CustomMode()
+    if l:mode['custom']
+        return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode', '') ])
     endif
 
     " « plugin/statusline.vim[+] »
