@@ -422,7 +422,7 @@ endfunction
 let s:statusline_last_custom_mode_time = reltime()
 
 function! s:CustomMode() abort
-    if has_key(b:, 'custom_statusline') && reltimefloat(reltime(s:statusline_last_custom_mode_time)) < 0.5
+    if has_key(b:, 'statusline_custom_mode') && reltimefloat(reltime(s:statusline_last_custom_mode_time)) < 0.5
         return b:statusline_custom_mode
     endif
     let b:statusline_custom_mode = s:FetchCustomMode()
