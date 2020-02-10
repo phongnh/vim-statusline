@@ -586,11 +586,8 @@ function! StatusLineRightFill(...) abort
     endif
 
     let l:winwidth = winwidth(get(a:, 1, 0))
-    let show_more_info = (l:winwidth >= s:small_window_width)
 
-    return s:BuildFill([
-                \   s:SpellStatus(),
-                \ ])
+    return s:BuildFill(s:SpellStatus())
 endfunction
 
 function! StatusLineInactiveMode(...) abort
