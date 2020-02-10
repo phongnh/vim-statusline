@@ -594,13 +594,13 @@ function! StatusLineRightFill(...) abort
 endfunction
 
 function! StatusLineInactiveMode(...) abort
-    let l:winwidth = winwidth(get(a:, 1, 0))
-
     " show only custom mode in inactive buffer
     let l:mode = s:CustomMode()
     if l:mode['custom']
         return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode', '') ])
     endif
+
+    let l:winwidth = winwidth(get(a:, 1, 0))
 
     " « plugin/statusline.vim[+] »
     return s:Wrap(s:FileNameStatus(l:winwidth - 2))
