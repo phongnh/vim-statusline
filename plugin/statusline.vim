@@ -360,10 +360,6 @@ function! s:FormatFileName(fname, winwidth, max_width) abort
     let max_width = min([a:winwidth, a:max_width])
 
     if strlen(fname) > max_width
-        let fname = s:ShortenPath(fname)
-    endif
-
-    if strlen(fname) > max_width
         let fname = fnamemodify(fname, ':t')
     endif
 
