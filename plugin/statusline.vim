@@ -3,7 +3,7 @@
 " Version:    0.1.0
 
 if exists('g:loaded_vim_statusline')
-    " finish
+    finish
 endif
 
 let g:loaded_vim_statusline = 1
@@ -85,6 +85,7 @@ let s:filetype_modes = {
             \ 'netrw':             'NetrwTree',
             \ 'nerdtree':          'NERDTree',
             \ 'startify':          'Startify',
+            \ 'tagbar':            'Tagbar',
             \ 'vim-plug':          'Plugins',
             \ 'terminal':          'Terminal',
             \ 'help':              'HELP',
@@ -226,25 +227,22 @@ function! s:FormatFileName(fname, winwidth, max_width) abort
     return fname
 endfunction
 
-function! s:GetFileFlags() abort
-    let flags = ''
-
-    " file modified and modifiable
+function! s:ModifiedStatus() abort
     if &modified
         if !&modifiable
-            let flags .= '[+-]'
+            return '[+-]'
         else
-            let flags .= '[+]'
+            return '[+]'
         endif
     elseif !&modifiable
-        let flags .= '[-]'
+        return '[-]'
     endif
 
-    if &readonly
-        let flags .= ' ' . s:symbols.readonly . ' '
-    endif
+    return ''
+endfunction
 
-    return flags
+function! s:ReadonlyStatus() abort
+    return &readonly ? ' ' . s:symbols.readonly . ' ' : ' '
 endfunction
 
 function! s:GetGitBranch() abort
@@ -301,7 +299,7 @@ endfunction
 
 function! s:FileNameStatus(...) abort
     let winwidth = get(a:, 1, 100)
-    return s:FormatFileName(s:GetFileName(), winwidth, 50) . s:GetFileFlags()
+    return s:FormatFileName(s:GetFileName(), winwidth, 50) . s:ModifiedStatus() . s:ReadonlyStatus()
 endfunction
 
 " Copied from https://github.com/ahmedelgabri/dotfiles/blob/master/files/vim/.vim/autoload/statusline.vim
