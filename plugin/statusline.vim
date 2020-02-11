@@ -566,7 +566,7 @@ function! s:FetchCustomMode() abort
             return extend(result, s:GetCtrlPMode())
         endif
 
-        if ft ==# '__Tagbar__'
+        if fname ==# '__Tagbar__'
             return extend(result, s:GetTagbarMode())
         endif
 
