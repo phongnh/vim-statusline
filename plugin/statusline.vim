@@ -111,7 +111,6 @@ let g:statusline_colors = {
             \ 'InactiveTab':     'TabLine',
             \ 'TabSeparator':    'LineNr',
             \ 'CloseButton':     'CursorLineNr',
-            \ 'CtrlP':           'Character',
             \ }
 
 function! s:HiSection(section) abort
@@ -144,11 +143,6 @@ endfunction
 
 function! s:EnsureList(list) abort
     return type(a:list) == type([]) ? deepcopy(a:list) : [a:list]
-endfunction
-
-function! s:ParseList(list) abort
-    let l:list = s:EnsureList(a:list)
-    return s:RemoveEmptyElement(l:list)
 endfunction
 
 function! s:ParseModeList(list) abort
@@ -416,14 +410,20 @@ function! s:SpellStatus() abort
     return ''
 endfunction
 
-let s:statusline_last_custom_mode_time = reltime()
+let s:statusline_time_threshold = 0.50
+
+function! s:SaveLastTime() abort
+    let s:statusline_last_custom_mode_time = reltime()
+endfunction
+
+call s:SaveLastTime()
 
 function! s:CustomMode() abort
-    if has_key(b:, 'statusline_custom_mode') && reltimefloat(reltime(s:statusline_last_custom_mode_time)) < 0.5
+    if has_key(b:, 'statusline_custom_mode') && reltimefloat(reltime(s:statusline_last_custom_mode_time)) < s:statusline_time_threshold
         return b:statusline_custom_mode
     endif
     let b:statusline_custom_mode = s:FetchCustomMode()
-    let s:statusline_last_custom_mode_time = reltime()
+    call s:SaveLastTime()
     return b:statusline_custom_mode
 endfunction
 
@@ -435,6 +435,10 @@ function! s:FetchCustomMode() abort
                     \ 'name': s:filename_modes[fname],
                     \ 'type': 'name',
                     \ }
+
+        if fname ==# 'ControlP'
+            return extend(result, s:GetCtrlPMode())
+        endif
 
         if fname ==# '__CtrlSF__'
             let pattern = substitute(ctrlsf#utils#SectionB(), 'Pattern: ', '', '')
@@ -471,6 +475,10 @@ function! s:FetchCustomMode() abort
                     \ 'name': s:filetype_modes[ft],
                     \ 'type': 'filetype',
                     \ }
+
+        if ft ==# 'tagbar'
+            return extend(result, s:GetTagbarMode())
+        endif
 
         if ft ==# 'terminal'
             let result['lmode'] = expand('%')
@@ -632,31 +640,8 @@ function! StatusLine(winnum) abort
     endif
 endfunction
 
-" Plugin Status
-function! s:Surround(str) abort
-    return strlen(a:str) ? ' ' . a:str . ' ' : a:str
-endfunction
-
-function! s:BuildPluginStatus(left_parts, ...) abort
-    let left_parts  = s:ParseList(a:left_parts)
-    let right_parts = s:ParseList(get(a:, 1, []))
-
-    let stl = '%<'
-    let stl .= s:Surround(s:BuildMode(left_parts[0]))
-    let stl .= s:HiSection('StatusSeparator')
-
-    let stl .= s:Surround(s:BuildFill(left_parts[1:]))
-
-    let stl .= '%='
-
-    if len(right_parts) > 0
-        let stl .= s:Surround(s:BuildFill(right_parts[1:]))
-        let stl .= '%*%<'
-        let stl .= s:Surround(s:BuildMode(right_parts[0], s:symbols.right_sep))
-    endif
-
-    return stl
-endfunction
+" Save plugin states
+let s:statusline = {}
 
 " CtrlP Integration
 let g:ctrlp_status_func = {
@@ -664,34 +649,80 @@ let g:ctrlp_status_func = {
             \ 'prog': 'CtrlPProgressStatusLine',
             \ }
 
-function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) abort
-    let focus   = s:HiSection('StatusSeparator') . ' ' . a:focus
-    let byfname = s:HiSection('CtrlP') . ' ' . a:byfname
-    let item    = s:HiSection('CtrlP') . ' ' . s:Wrap(a:item) . ' %*' . s:HiSection('StatusSeparator')
-    return s:BuildPluginStatus(
-                \ [
-                \   s:filename_modes['ControlP'],
-                \   [ a:prev, item, a:next ]
-                \ ],
-                \ [
-                \   s:GetCurrentDir(),
-                \   [ a:focus, byfname ]
+function! s:GetCtrlPMode() abort
+    let lfill = s:BuildFill([
+                \ s:statusline.ctrlp_prev,
+                \ s:Wrap(s:statusline.ctrlp_item),
+                \ s:statusline.ctrlp_next,
                 \ ])
+
+    let rfill = s:BuildFill([
+                \ s:statusline.ctrlp_focus,
+                \ '[' . s:statusline.ctrlp_byfname . ']',
+                \ ])
+
+    return {
+                \ 'name': s:filename_modes['ControlP'],
+                \ 'lfill': lfill,
+                \ 'rfill': rfill,
+                \ 'rmode': s:statusline.ctrlp_dir,
+                \ 'type': 'ctrlp',
+                \ }
+endfunction
+
+function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) abort
+    let s:statusline.ctrlp_focus   = a:focus
+    let s:statusline.ctrlp_byfname = a:byfname
+    let s:statusline.ctrlp_regex   = a:regex
+    let s:statusline.ctrlp_prev    = a:prev
+    let s:statusline.ctrlp_item    = a:item
+    let s:statusline.ctrlp_next    = a:next
+    let s:statusline.ctrlp_marked  = a:marked
+    let s:statusline.ctrlp_dir     = s:GetCurrentDir()
+
+    let b:statusline_custom_mode = s:GetCtrlPMode()
+    call s:SaveLastTime()
+
+    return StatusLine(winnr())
 endfunction
 
 function! CtrlPProgressStatusLine(len) abort
-    return s:BuildPluginStatus([ a:len ], [ s:GetCurrentDir() ])
+    let b:statusline_custom_mode = {
+                \ 'name': s:filename_modes['ControlP'],
+                \ 'lfill': a:len,
+                \ 'rmode': s:GetCurrentDir(),
+                \ 'type': 'ctrlp',
+                \ }
+    return StatusLine(winnr())
 endfunction
 
 " Tagbar Integration
 let g:tagbar_status_func = 'TagbarStatusFunc'
 
+function! s:GetTagbarMode() abort
+    if empty(s:statusline.tagbar_flags)
+        let lfill = ''
+    else
+        let lfill = printf('[%s]', join(s:statusline.tagbar_flags, ''))
+    endif
+
+    return {
+                \ 'name': s:statusline.tagbar_sort,
+                \ 'lmode': s:statusline.tagbar_fname,
+                \ 'lfill': lfill,
+                \ 'type': 'tagbar',
+                \ }
+endfunction
+
 function! TagbarStatusFunc(current, sort, fname, flags, ...) abort
-    return s:BuildPluginStatus(
-                \ [
-                \   [ a:sort, a:fname ],
-                \   empty(a:flags) ? '' : printf('[%s]', join(a:flags, ''))
-                \ ])
+    let s:statusline.tagbar_sort  = a:sort
+    let s:statusline.tagbar_fname = a:fname
+    let s:statusline.tagbar_flags = a:flags
+
+    let b:statusline_custom_mode = s:GetTagbarMode()
+    call s:SaveLastTime()
+
+    return StatusLine(winnr())
 endfunction
 
 " ZoomWin Integration
@@ -712,8 +743,7 @@ function! ZoomWinStatusLine(zoomstate) abort
             call F(a:zoomstate)
         endif
     endfor
-
-    :RefreshStatusLine
+    call s:RefreshStatusLine()
 endfunction
 
 let g:ZoomWin_funcref= function('ZoomWinStatusLine')
