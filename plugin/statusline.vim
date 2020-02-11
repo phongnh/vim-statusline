@@ -242,7 +242,7 @@ function! s:ModifiedStatus() abort
 endfunction
 
 function! s:ReadonlyStatus() abort
-    return &readonly ? ' ' . s:symbols.readonly . ' ' : ' '
+    return &readonly ? ' ' . s:symbols.readonly . ' ' : ''
 endfunction
 
 function! s:GetGitBranch() abort
@@ -438,8 +438,11 @@ function! s:FetchCustomMode() abort
                     \ }
 
         if fname ==# '__CtrlSF__'
+            let pattern = substitute(ctrlsf#utils#SectionB(), 'Pattern: ', '', '')
+
             return extend(result, {
-                        \ 'lmode': substitute(ctrlsf#utils#SectionB(), 'Pattern: ', '', ''),
+                        \ 'lmode': pattern,
+                        \ 'lmode_inactive': pattern,
                         \ 'lfill': ctrlsf#utils#SectionC(),
                         \ 'rmode': ctrlsf#utils#SectionX(),
                         \ })
@@ -447,6 +450,7 @@ function! s:FetchCustomMode() abort
 
         if fname ==# '__CtrlSFPreview__'
             let result['lmode'] = ctrlsf#utils#PreviewSectionC()
+            let result['lmode_inactive'] = result['lmode']
             return result
         endif
 
@@ -455,12 +459,11 @@ function! s:FetchCustomMode() abort
 
     if fname =~? '^NrrwRgn'
         let nrrw_rgn_status = s:NrrwRgnStatus()
-        if strlen(nrrw_rgn_status)
-            return {
+        if len(nrrw_rgn_status)
+            return extend(nrrw_rgn_status, {
                         \ 'custom': 1,
-                        \ 'name': nrrw_rgn_status,
-                        \ 'type': 'name',
-                        \ }
+                        \ 'type': 'nrrwrgn',
+                        \ })
         endif
     endif
 
@@ -479,6 +482,7 @@ function! s:FetchCustomMode() abort
 
         if ft ==# 'help'
             let result['lmode'] = expand('%:p')
+            let result['lmode_inactive'] = result['lmode']
             return result
         endif
 
@@ -487,6 +491,7 @@ function! s:FetchCustomMode() abort
                 let result['name'] = 'Location'
             endif
             let result['lmode'] = s:Strip(get(w:, 'quickfix_title', ''))
+            let result['lmode_inactive'] = result['lmode']
             return result
         endif
 
@@ -497,29 +502,31 @@ function! s:FetchCustomMode() abort
 endfunction
 
 function! s:NrrwRgnStatus(...) abort
+    let result = {}
+
     if exists(':WidenRegion') == 2
         let l:modes = []
 
         if exists('b:nrrw_instn')
-            call add(l:modes, printf('%s#%d', 'NrrwRgn', b:nrrw_instn))
+            let result['name'] = printf('%s#%d', 'NrrwRgn', b:nrrw_instn)
         else
             let l:mode = substitute(bufname('%'), '^Nrrwrgn_\zs.*\ze_\d\+$', submatch(0), '')
             let l:mode = substitute(l:mode, '__', '#', '')
-            call add(l:modes, l:mode)
+            let result['name'] = l:mode
         endif
 
         let dict = exists('*nrrwrgn#NrrwRgnStatus()') ?  nrrwrgn#NrrwRgnStatus() : {}
 
-        if !empty(dict)
-            call add(l:modes, fnamemodify(dict.fullname, ':~:.'))
+        if len(dict)
+            let result['lmode'] = fnamemodify(dict.fullname, ':~:.')
+            let result['lmode_inactive'] = result['lmode']
         elseif get(b:, 'orig_buf', 0)
-            call add(l:modes, bufname(b:orig_buf))
+            let result['lmode'] = bufname(b:orig_buf)
+            let result['lmode_inactive'] = result['lmode']
         endif
-
-        return s:BuildMode(l:modes)
     endif
 
-    return ''
+    return result
 endfunction
 
 function! s:IsCompact(winwidth) abort
@@ -597,7 +604,7 @@ function! StatusLineInactiveMode(...) abort
     " show only custom mode in inactive buffer
     let l:mode = s:CustomMode()
     if l:mode['custom']
-        return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode', '') ])
+        return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode_inactive', '') ])
     endif
 
     let l:winwidth = winwidth(get(a:, 1, 0))
