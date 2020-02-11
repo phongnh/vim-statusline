@@ -292,7 +292,7 @@ function! s:ShortenBranch(branch, length) abort
 endfunction
 
 function! s:FormatBranch(branch, winwidth) abort
-    if a:winwidth > s:normal_window_width
+    if a:winwidth >= s:normal_window_width
         return s:ShortenBranch(a:branch, 50)
     endif
 
@@ -461,11 +461,11 @@ function! StatusLineLeftFill(...) abort
 
     let l:winwidth = winwidth(get(a:, 1, 0))
 
-    if l:winwidth < s:small_window_width
-        return ''
+    if l:winwidth >= s:small_window_width
+        return s:BuildFill(s:FileSizeStatus())
     endif
 
-    return s:BuildFill(s:FileSizeStatus())
+    return ''
 endfunction
 
 function! StatusLineRightMode(...) abort
