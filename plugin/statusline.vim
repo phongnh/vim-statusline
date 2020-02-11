@@ -441,31 +441,20 @@ function! s:FetchCustomMode() abort
         endif
 
         if fname ==# '__CtrlSF__'
-            let pattern = substitute(ctrlsf#utils#SectionB(), 'Pattern: ', '', '')
-
-            return extend(result, {
-                        \ 'lmode': pattern,
-                        \ 'lmode_inactive': pattern,
-                        \ 'lfill': ctrlsf#utils#SectionC(),
-                        \ 'rmode': ctrlsf#utils#SectionX(),
-                        \ })
+            return extend(result, s:GetCtrlSFMode())
         endif
 
         if fname ==# '__CtrlSFPreview__'
-            let result['lmode'] = ctrlsf#utils#PreviewSectionC()
-            let result['lmode_inactive'] = result['lmode']
-            return result
+            return extend(result, s:GetCtrlSFPreviewMode())
         endif
 
         return result
     endif
 
     if fname =~? '^NrrwRgn'
-        let nrrw_rgn_status = s:NrrwRgnStatus()
-        if len(nrrw_rgn_status)
-            return extend(nrrw_rgn_status, {
-                        \ 'type': 'nrrwrgn',
-                        \ })
+        let nrrw_rgn_mode = s:GetNrrwRgnMode()
+        if len(nrrw_rgn_mode)
+            return nrrw_rgn_mode
         endif
     endif
 
@@ -481,57 +470,34 @@ function! s:FetchCustomMode() abort
         endif
 
         if ft ==# 'terminal'
-            let result['lmode'] = expand('%')
-            return result
+            return extend(result, {
+                        \ 'lmode': expand('%'),
+                        \ })
         endif
 
         if ft ==# 'help'
-            let result['lmode'] = expand('%:p')
-            let result['lmode_inactive'] = result['lmode']
-            return result
+            let fname = expand('%:p')
+            return extend(result, {
+                        \ 'lmode': fname,
+                        \ 'lmode_inactive': fname,
+                        \ })
         endif
 
         if ft ==# 'qf'
             if getwininfo(win_getid())[0]['loclist']
                 let result['name'] = 'Location'
             endif
-            let result['lmode'] = s:Strip(get(w:, 'quickfix_title', ''))
-            let result['lmode_inactive'] = result['lmode']
-            return result
+            let qf_title = s:Strip(get(w:, 'quickfix_title', ''))
+            return extend(result, {
+                        \ 'lmode': qf_title,
+                        \ 'lmode_inactive': qf_title,
+                        \ })
         endif
 
         return result
     endif
 
     return {}
-endfunction
-
-function! s:NrrwRgnStatus(...) abort
-    let result = {}
-
-    if exists(':WidenRegion') == 2
-        let l:modes = []
-
-        if exists('b:nrrw_instn')
-            let result['name'] = printf('%s#%d', 'NrrwRgn', b:nrrw_instn)
-        else
-            let l:mode = substitute(bufname('%'), '^Nrrwrgn_\zs.*\ze_\d\+$', submatch(0), '')
-            let l:mode = substitute(l:mode, '__', '#', '')
-            let result['name'] = l:mode
-        endif
-
-        let dict = exists('*nrrwrgn#NrrwRgnStatus()') ?  nrrwrgn#NrrwRgnStatus() : {}
-
-        if len(dict)
-            let result['lmode'] = fnamemodify(dict.fullname, ':~:.')
-            let result['lmode_inactive'] = result['lmode']
-        elseif get(b:, 'orig_buf', 0)
-            let result['lmode'] = bufname(b:orig_buf)
-            let result['lmode_inactive'] = result['lmode']
-        endif
-    endif
-
-    return result
 endfunction
 
 function! s:IsCompact(winwidth) abort
@@ -694,6 +660,54 @@ function! CtrlPProgressStatusLine(len) abort
                 \ 'type': 'ctrlp',
                 \ }
     return StatusLine(winnr())
+endfunction
+
+" CtrlSF Integration
+function! s:GetCtrlSFMode() abort
+    let pattern = substitute(ctrlsf#utils#SectionB(), 'Pattern: ', '', '')
+    return {
+                \ 'lmode': pattern,
+                \ 'lmode_inactive': pattern,
+                \ 'lfill': ctrlsf#utils#SectionC(),
+                \ 'rmode': ctrlsf#utils#SectionX(),
+                \ }
+endfunction
+
+function! s:GetCtrlSFPreviewMode() abort
+    let stl = ctrlsf#utils#PreviewSectionC()
+    return {
+                \ 'lmode': stl,
+                \ 'lmode_inactive': stl,
+                \ }
+endfunction
+
+" NrrwRgn Integration
+function! s:GetNrrwRgnMode(...) abort
+    let result = {}
+
+    if exists(':WidenRegion') == 2
+        let result['type'] = 'nrrwrgn'
+
+        if exists('b:nrrw_instn')
+            let result['name'] = printf('%s#%d', 'NrrwRgn', b:nrrw_instn)
+        else
+            let l:mode = substitute(bufname('%'), '^Nrrwrgn_\zs.*\ze_\d\+$', submatch(0), '')
+            let l:mode = substitute(l:mode, '__', '#', '')
+            let result['name'] = l:mode
+        endif
+
+        let dict = exists('*nrrwrgn#NrrwRgnStatus()') ?  nrrwrgn#NrrwRgnStatus() : {}
+
+        if len(dict)
+            let result['lmode'] = fnamemodify(dict.fullname, ':~:.')
+            let result['lmode_inactive'] = result['lmode']
+        elseif get(b:, 'orig_buf', 0)
+            let result['lmode'] = bufname(b:orig_buf)
+            let result['lmode_inactive'] = result['lmode']
+        endif
+    endif
+
+    return result
 endfunction
 
 " Tagbar Integration
