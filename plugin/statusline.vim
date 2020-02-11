@@ -432,7 +432,6 @@ function! s:FetchCustomMode() abort
 
     if has_key(s:filename_modes, fname)
         let result = {
-                    \ 'custom': 1,
                     \ 'name': s:filename_modes[fname],
                     \ 'type': 'name',
                     \ }
@@ -461,7 +460,6 @@ function! s:FetchCustomMode() abort
         let nrrw_rgn_status = s:NrrwRgnStatus()
         if len(nrrw_rgn_status)
             return extend(nrrw_rgn_status, {
-                        \ 'custom': 1,
                         \ 'type': 'nrrwrgn',
                         \ })
         endif
@@ -470,7 +468,6 @@ function! s:FetchCustomMode() abort
     let ft = s:GetBufferType()
     if has_key(s:filetype_modes, ft)
         let result = {
-                    \ 'custom': 1,
                     \ 'name': s:filetype_modes[ft],
                     \ 'type': 'filetype',
                     \ }
@@ -498,7 +495,7 @@ function! s:FetchCustomMode() abort
         return result
     endif
 
-    return { 'custom': 0 }
+    return {}
 endfunction
 
 function! s:NrrwRgnStatus(...) abort
@@ -544,7 +541,7 @@ endfunction
 function! StatusLineActiveMode(...) abort
     " custom status
     let l:mode = s:CustomMode()
-    if l:mode['custom']
+    if len(l:mode)
         return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode', '') ])
     endif
 
@@ -560,7 +557,7 @@ endfunction
 
 function! StatusLineLeftFill(...) abort
     let l:mode = s:CustomMode()
-    if l:mode['custom']
+    if len(l:mode)
         return get(l:mode, 'lfill', '')
     endif
 
@@ -575,7 +572,7 @@ endfunction
 
 function! StatusLineRightMode(...) abort
     let l:mode = s:CustomMode()
-    if l:mode['custom']
+    if len(l:mode)
         return get(l:mode, 'rmode', '')
     endif
 
@@ -591,7 +588,7 @@ endfunction
 
 function! StatusLineRightFill(...) abort
     let l:mode = s:CustomMode()
-    if l:mode['custom']
+    if len(l:mode)
         return get(l:mode, 'rfill', '')
     endif
 
@@ -603,7 +600,7 @@ endfunction
 function! StatusLineInactiveMode(...) abort
     " show only custom mode in inactive buffer
     let l:mode = s:CustomMode()
-    if l:mode['custom']
+    if len(l:mode)
         return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode_inactive', '') ])
     endif
 
