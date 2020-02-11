@@ -39,11 +39,14 @@ let s:symbols = {
             \ 'right_alt':      '«',
             \ 'readonly':       '',
             \ 'ellipsis':       '…',
-            \ 'left_mode_sep':  ' ',
-            \ 'right_mode_sep': ' ',
             \ 'left_fill_sep':  ' ',
             \ 'right_fill_sep': ' ',
             \ }
+
+call extend(s:symbols, {
+            \ 'left_mode_sep':  ' ' . s:symbols.left_alt . ' ',
+            \ 'right_mode_sep': ' ' . s:symbols.right_alt . ' ',
+            \ })
 
 let s:powerline_symbols = {
             \ 'left':           '',
