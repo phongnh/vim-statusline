@@ -12,6 +12,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Settings
+let g:statusline_powerline             = get(g:, 'statusline_powerline', 0)
 let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
 let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
 let g:statusline_show_file_size        = get(g:, 'statusline_show_file_size', 1)
@@ -30,20 +31,41 @@ let s:displayable_tab_count = 5
 
 " Symbols
 let s:symbols = {
-            \ 'clipboard': 'ⓒ ',
-            \ 'paste':     'Ⓟ ',
-            \ 'left':      '»',
-            \ 'right':     '«',
-            \ 'readonly':  '',
-            \ 'ellipsis':  '…',
-            \ 'mode_sep':  ' ',
-            \ 'fill_sep':  ' ',
-            \ 'arrow':     '←',
+            \ 'clipboard':      'ⓒ  ',
+            \ 'paste':          'Ⓟ  ',
+            \ 'left':           '»',
+            \ 'left_alt':       '»',
+            \ 'right':          '«',
+            \ 'right_alt':      '«',
+            \ 'readonly':       '',
+            \ 'ellipsis':       '…',
+            \ 'left_mode_sep':  ' ',
+            \ 'right_mode_sep': ' ',
+            \ 'left_fill_sep':  ' ',
+            \ 'right_fill_sep': ' ',
             \ }
 
+let s:powerline_symbols = {
+            \ 'left':           '',
+            \ 'left_alt':       '',
+            \ 'right':          '',
+            \ 'right_alt':      '',
+            \ }
+
+call extend(s:powerline_symbols, {
+            \ 'left_mode_sep':  ' ' . s:powerline_symbols.left_alt . ' ',
+            \ 'right_mode_sep': ' ' . s:powerline_symbols.right_alt . ' ',
+            \ })
+
+if g:statusline_powerline
+    call extend(s:symbols, s:powerline_symbols)
+endif
+
 call extend(s:symbols, {
-            \ 'left_sep':  ' ' . s:symbols.left . ' ',
-            \ 'right_sep': ' ' . s:symbols.right . ' ',
+            \ 'left_sep':      ' ' . s:symbols.left . ' ',
+            \ 'left_alt_sep':  ' ' . s:symbols.left_alt . ' ',
+            \ 'right_sep':     ' ' . s:symbols.right . ' ',
+            \ 'right_alt_sep': ' ' . s:symbols.right_alt . ' ',
             \ })
 
 " Alternative Symbols
@@ -126,7 +148,7 @@ function! s:Strip(str) abort
 endfunction
 
 function! s:Wrap(text) abort
-    return printf('%s %s %s', s:symbols.right, a:text, s:symbols.left)
+    return printf('%s %s %s', '«', a:text, '»')
 endfunction
 
 function! s:ShortenPath(filename) abort
@@ -145,38 +167,30 @@ function! s:EnsureList(list) abort
     return type(a:list) == type([]) ? deepcopy(a:list) : [a:list]
 endfunction
 
-function! s:ParseModeList(list) abort
+function! s:ParseList(list, sep) abort
     let l:list = s:EnsureList(a:list)
-    let l:list = map(copy(l:list), "type(v:val) == type([]) ? join(s:RemoveEmptyElement(v:val), s:symbols.mode_sep) : v:val")
-    return s:RemoveEmptyElement(l:list)
-endfunction
-
-function! s:ParseFillList(list) abort
-    let l:list = s:EnsureList(a:list)
-    let l:list = map(copy(l:list), "type(v:val) == type([]) ? join(s:RemoveEmptyElement(v:val), s:symbols.fill_sep) : v:val")
+    let l:list = map(copy(l:list), "type(v:val) == type([]) ? join(s:RemoveEmptyElement(v:val), a:sep) : v:val")
     return s:RemoveEmptyElement(l:list)
 endfunction
 
 function! s:BuildMode(parts, ...) abort
-    let l:parts = s:ParseModeList(a:parts)
-    if empty(l:parts)
-        return ''
-    endif
-    let l:sep = get(a:, 1, s:symbols.left_sep)
+    let l:sep = get(a:, 1, s:symbols.left_mode_sep)
+    let l:parts = s:ParseList(a:parts, l:sep)
     return join(l:parts, l:sep)
 endfunction
 
 function! s:BuildRightMode(parts) abort
-    return s:BuildMode(a:parts, s:symbols.right_sep)
+    return s:BuildMode(a:parts, s:symbols.right_mode_sep)
 endfunction
 
 function! s:BuildFill(parts, ...) abort
-    let l:parts = s:ParseFillList(a:parts)
-    if empty(l:parts)
-        return ''
-    endif
-    let l:sep = get(a:, 1, s:symbols.fill_sep)
+    let l:sep = get(a:, 1, s:symbols.left_fill_sep)
+    let l:parts = s:ParseList(a:parts, l:sep)
     return join(l:parts, l:sep)
+endfunction
+
+function! s:BuildRightFill(parts) abort
+    return s:BuildFill(a:parts, s:symbols.right_fill_sep)
 endfunction
 
 function! s:GetCurrentDir() abort
@@ -410,96 +424,6 @@ function! s:SpellStatus() abort
     return ''
 endfunction
 
-let s:statusline_time_threshold = 0.50
-
-function! s:SaveLastTime() abort
-    let s:statusline_last_custom_mode_time = reltime()
-endfunction
-
-call s:SaveLastTime()
-
-function! s:CustomMode() abort
-    if has_key(b:, 'statusline_custom_mode') && reltimefloat(reltime(s:statusline_last_custom_mode_time)) < s:statusline_time_threshold
-        return b:statusline_custom_mode
-    endif
-    let b:statusline_custom_mode = s:FetchCustomMode()
-    call s:SaveLastTime()
-    return b:statusline_custom_mode
-endfunction
-
-function! s:FetchCustomMode() abort
-    let fname = expand('%:t')
-
-    if has_key(s:filename_modes, fname)
-        let result = {
-                    \ 'name': s:filename_modes[fname],
-                    \ 'type': 'name',
-                    \ }
-
-        if fname ==# 'ControlP'
-            return extend(result, s:GetCtrlPMode())
-        endif
-
-        if fname ==# '__CtrlSF__'
-            return extend(result, s:GetCtrlSFMode())
-        endif
-
-        if fname ==# '__CtrlSFPreview__'
-            return extend(result, s:GetCtrlSFPreviewMode())
-        endif
-
-        return result
-    endif
-
-    if fname =~? '^NrrwRgn'
-        let nrrw_rgn_mode = s:GetNrrwRgnMode()
-        if len(nrrw_rgn_mode)
-            return nrrw_rgn_mode
-        endif
-    endif
-
-    let ft = s:GetBufferType()
-    if has_key(s:filetype_modes, ft)
-        let result = {
-                    \ 'name': s:filetype_modes[ft],
-                    \ 'type': 'filetype',
-                    \ }
-
-        if ft ==# 'tagbar'
-            return extend(result, s:GetTagbarMode())
-        endif
-
-        if ft ==# 'terminal'
-            return extend(result, {
-                        \ 'lmode': expand('%'),
-                        \ })
-        endif
-
-        if ft ==# 'help'
-            let fname = expand('%:p')
-            return extend(result, {
-                        \ 'lmode': fname,
-                        \ 'lmode_inactive': fname,
-                        \ })
-        endif
-
-        if ft ==# 'qf'
-            if getwininfo(win_getid())[0]['loclist']
-                let result['name'] = 'Location'
-            endif
-            let qf_title = s:Strip(get(w:, 'quickfix_title', ''))
-            return extend(result, {
-                        \ 'lmode': qf_title,
-                        \ 'lmode_inactive': qf_title,
-                        \ })
-        endif
-
-        return result
-    endif
-
-    return {}
-endfunction
-
 function! s:IsCompact(winwidth) abort
     return &spell || &paste || strlen(s:ClipboardStatus()) || a:winwidth <= s:xsmall_window_width
 endfunction
@@ -568,7 +492,7 @@ function! StatusLineRightFill(...) abort
 
     let l:winwidth = winwidth(get(a:, 1, 0))
 
-    return s:BuildFill(s:SpellStatus())
+    return s:BuildRightFill(s:SpellStatus())
 endfunction
 
 function! StatusLineInactiveMode(...) abort
@@ -606,8 +530,102 @@ function! StatusLine(winnum) abort
     endif
 endfunction
 
+" Plugin Integration
 " Save plugin states
 let s:statusline = {}
+let s:statusline_time_threshold = 0.50
+
+function! s:SaveLastTime() abort
+    let s:statusline_last_custom_mode_time = reltime()
+endfunction
+
+call s:SaveLastTime()
+
+function! s:CustomMode() abort
+    if has_key(b:, 'statusline_custom_mode') && reltimefloat(reltime(s:statusline_last_custom_mode_time)) < s:statusline_time_threshold
+        return b:statusline_custom_mode
+    endif
+    let b:statusline_custom_mode = s:FetchCustomMode()
+    call s:SaveLastTime()
+    return b:statusline_custom_mode
+endfunction
+
+function! s:FetchCustomMode() abort
+    let fname = expand('%:t')
+
+    if has_key(s:filename_modes, fname)
+        let result = {
+                    \ 'name': s:filename_modes[fname],
+                    \ 'type': 'name',
+                    \ }
+
+        if fname ==# 'ControlP'
+            return extend(result, s:GetCtrlPMode())
+        endif
+
+        if ft ==# '__Tagbar__'
+            return extend(result, s:GetTagbarMode())
+        endif
+
+        if fname ==# '__CtrlSF__'
+            return extend(result, s:GetCtrlSFMode())
+        endif
+
+        if fname ==# '__CtrlSFPreview__'
+            return extend(result, s:GetCtrlSFPreviewMode())
+        endif
+
+        return result
+    endif
+
+    if fname =~? '^NrrwRgn'
+        let nrrw_rgn_mode = s:GetNrrwRgnMode()
+        if len(nrrw_rgn_mode)
+            return nrrw_rgn_mode
+        endif
+    endif
+
+    let ft = s:GetBufferType()
+    if has_key(s:filetype_modes, ft)
+        let result = {
+                    \ 'name': s:filetype_modes[ft],
+                    \ 'type': 'filetype',
+                    \ }
+
+        if ft ==# 'tagbar'
+            return extend(result, s:GetTagbarMode())
+        endif
+
+        if ft ==# 'terminal'
+            return extend(result, {
+                        \ 'lmode': expand('%'),
+                        \ })
+        endif
+
+        if ft ==# 'help'
+            let fname = expand('%:p')
+            return extend(result, {
+                        \ 'lmode': fname,
+                        \ 'lmode_inactive': fname,
+                        \ })
+        endif
+
+        if ft ==# 'qf'
+            if getwininfo(win_getid())[0]['loclist']
+                let result['name'] = 'Location'
+            endif
+            let qf_title = s:Strip(get(w:, 'quickfix_title', ''))
+            return extend(result, {
+                        \ 'lmode': qf_title,
+                        \ 'lmode_inactive': qf_title,
+                        \ })
+        endif
+
+        return result
+    endif
+
+    return {}
+endfunction
 
 " CtrlP Integration
 let g:ctrlp_status_func = {
@@ -622,7 +640,7 @@ function! s:GetCtrlPMode() abort
                 \ s:statusline.ctrlp_next,
                 \ ])
 
-    let rfill = s:BuildFill([
+    let rfill = s:BuildRightFill([
                 \ s:statusline.ctrlp_focus,
                 \ '[' . s:statusline.ctrlp_byfname . ']',
                 \ ])
