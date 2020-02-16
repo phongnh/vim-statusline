@@ -49,10 +49,10 @@ call extend(s:symbols, {
             \ })
 
 let s:powerline_symbols = {
-            \ 'left':           '',
-            \ 'left_alt':       '',
-            \ 'right':          '',
-            \ 'right_alt':      '',
+            \ 'left':      "\ue0b0",
+            \ 'right':     "\ue0b2",
+            \ 'left_alt':  "\ue0b1",
+            \ 'right_alt': "\ue0b3",
             \ }
 
 call extend(s:powerline_symbols, {
