@@ -29,7 +29,7 @@ let s:normal_window_width = 100
 " Number of displayable tabs
 let s:displayable_tab_count = 5
 
-" Symbols
+" Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
 let s:symbols = {
             \ 'clipboard':      'ⓒ  ',
             \ 'paste':          'Ⓟ  ',
@@ -43,49 +43,24 @@ let s:symbols = {
             \ 'right_fill_sep': ' ',
             \ }
 
-call extend(s:symbols, {
-            \ 'left_mode_sep':  ' ' . s:symbols.left_alt . ' ',
-            \ 'right_mode_sep': ' ' . s:symbols.right_alt . ' ',
-            \ })
-
-let s:powerline_symbols = {
-            \ 'left':      "\ue0b0",
-            \ 'right':     "\ue0b2",
-            \ 'left_alt':  "\ue0b1",
-            \ 'right_alt': "\ue0b3",
-            \ }
-
-call extend(s:powerline_symbols, {
-            \ 'left_mode_sep':  ' ' . s:powerline_symbols.left_alt . ' ',
-            \ 'right_mode_sep': ' ' . s:powerline_symbols.right_alt . ' ',
-            \ })
-
 if g:statusline_powerline
-    call extend(s:symbols, s:powerline_symbols)
+    " Powerline Symbols
+    call extend(s:symbols, {
+                \ 'left':      "\ue0b0",
+                \ 'right':     "\ue0b2",
+                \ 'left_alt':  "\ue0b1",
+                \ 'right_alt': "\ue0b3",
+                \ })
 endif
 
 call extend(s:symbols, {
-            \ 'left_sep':      ' ' . s:symbols.left . ' ',
-            \ 'left_alt_sep':  ' ' . s:symbols.left_alt . ' ',
-            \ 'right_sep':     ' ' . s:symbols.right . ' ',
-            \ 'right_alt_sep': ' ' . s:symbols.right_alt . ' ',
+            \ 'left_mode_sep':  ' ' . s:symbols.left_alt . ' ',
+            \ 'right_mode_sep': ' ' . s:symbols.right_alt . ' ',
+            \ 'left_sep':       ' ' . s:symbols.left . ' ',
+            \ 'left_alt_sep':   ' ' . s:symbols.left_alt . ' ',
+            \ 'right_sep':      ' ' . s:symbols.right . ' ',
+            \ 'right_alt_sep':  ' ' . s:symbols.right_alt . ' ',
             \ })
-
-" Alternative Symbols
-" ©: Clipboard
-"Ⓒ  : Clipboard
-"ⓒ  : Clipboard
-"ⓒ  : Clipboard
-"ⓒ  : Clipboard
-"ⓟ  : Paste
-"Ⓟ  : Paste
-"℗  : Paste
-"℗  : Paste
-" Ρ: Paste
-" ρ: Paste
-"Ⓡ  : Readonly
-"ⓡ  : Readonly
-" ® : Readonly
 
 " Detect DevIcons
 let s:has_devicons = findfile('plugin/webdevicons.vim', &rtp) != ''
