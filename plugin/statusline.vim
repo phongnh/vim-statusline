@@ -746,9 +746,6 @@ function! TagbarStatusFunc(current, sort, fname, flags, ...) abort
     let s:statusline.tagbar_fname = a:fname
     let s:statusline.tagbar_flags = a:flags
 
-    let b:statusline_custom_mode = s:GetTagbarMode()
-    call s:SaveLastTime()
-
     return StatusLine(winnr())
 endfunction
 
