@@ -233,6 +233,11 @@ function! s:ReadonlyStatus() abort
 endfunction
 
 function! s:GetGitBranch() abort
+    " Get branch from caching if it is available
+    if has_key(b:, 'statusline_git_branch') && reltimefloat(reltime(s:statusline_last_finding_branch_time)) < s:statusline_time_threshold
+        return b:statusline_git_branch
+    endif
+
     let branch = ''
 
     if exists('*FugitiveHead')
@@ -252,6 +257,10 @@ function! s:GetGitBranch() abort
     elseif exists(':Gina') == 2
         let branch = gina#component#repo#branch()
     endif
+
+    " Caching
+    let b:statusline_git_branch = branch
+    let s:statusline_last_finding_branch_time = reltime()
 
     return branch
 endfunction
@@ -494,23 +503,9 @@ endfunction
 " Save plugin states
 let s:statusline = {}
 let s:statusline_time_threshold = 0.50
-
-function! s:SaveLastTime() abort
-    let s:statusline_last_custom_mode_time = reltime()
-endfunction
-
-call s:SaveLastTime()
+let s:statusline_last_finding_branch_time = reltime()
 
 function! s:CustomMode() abort
-    if has_key(b:, 'statusline_custom_mode') && reltimefloat(reltime(s:statusline_last_custom_mode_time)) < s:statusline_time_threshold
-        return b:statusline_custom_mode
-    endif
-    let b:statusline_custom_mode = s:FetchCustomMode()
-    call s:SaveLastTime()
-    return b:statusline_custom_mode
-endfunction
-
-function! s:FetchCustomMode() abort
     let fname = expand('%:t')
 
     if has_key(s:filename_modes, fname)
