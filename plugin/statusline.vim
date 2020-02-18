@@ -598,27 +598,39 @@ let g:ctrlp_status_func = {
             \ }
 
 function! s:GetCtrlPMode() abort
-    let lfill = s:BuildFill([
-                \ s:statusline.ctrlp_prev,
-                \ s:Wrap(s:statusline.ctrlp_item),
-                \ s:statusline.ctrlp_next,
-                \ ])
-
-    let rfill = s:BuildRightFill([
-                \ s:statusline.ctrlp_focus,
-                \ '[' . s:statusline.ctrlp_byfname . ']',
-                \ ])
-
-    return {
+    let result = {
                 \ 'name': s:filename_modes['ControlP'],
-                \ 'lfill': lfill,
-                \ 'rfill': rfill,
                 \ 'rmode': s:statusline.ctrlp_dir,
                 \ 'type': 'ctrlp',
                 \ }
+
+    if s:statusline.ctrlp_main
+        let lfill = s:BuildFill([
+                    \ s:statusline.ctrlp_prev,
+                    \ s:Wrap(s:statusline.ctrlp_item),
+                    \ s:statusline.ctrlp_next,
+                    \ ])
+
+        let rfill = s:BuildRightFill([
+                    \ s:statusline.ctrlp_focus,
+                    \ '[' . s:statusline.ctrlp_byfname . ']',
+                    \ ])
+
+        call extend(result, {
+                    \ 'lfill': lfill,
+                    \ 'rfill': rfill,
+                    \ })
+    else
+        call extend(result, {
+                    \ 'lfill': s:statusline.ctrlp_len,
+                    \ })
+    endif
+
+    return result
 endfunction
 
 function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) abort
+    let s:statusline.ctrlp_main    = 1
     let s:statusline.ctrlp_focus   = a:focus
     let s:statusline.ctrlp_byfname = a:byfname
     let s:statusline.ctrlp_regex   = a:regex
@@ -628,19 +640,14 @@ function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) a
     let s:statusline.ctrlp_marked  = a:marked
     let s:statusline.ctrlp_dir     = s:GetCurrentDir()
 
-    let b:statusline_custom_mode = s:GetCtrlPMode()
-    call s:SaveLastTime()
-
     return StatusLine(winnr())
 endfunction
 
 function! CtrlPProgressStatusLine(len) abort
-    let b:statusline_custom_mode = {
-                \ 'name': s:filename_modes['ControlP'],
-                \ 'lfill': a:len,
-                \ 'rmode': s:GetCurrentDir(),
-                \ 'type': 'ctrlp',
-                \ }
+    let s:statusline.ctrlp_main = 0
+    let s:statusline.ctrlp_len  = a:len
+    let s:statusline.ctrlp_dir  = s:GetCurrentDir()
+
     return StatusLine(winnr())
 endfunction
 
