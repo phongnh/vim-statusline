@@ -13,10 +13,17 @@ set cpo&vim
 
 " Settings
 let g:statusline_powerline             = get(g:, 'statusline_powerline', 0)
+let g:statusline_mode                  = get(g:, 'statusline_mode', 'default')
 let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
 let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
 let g:statusline_show_file_size        = get(g:, 'statusline_show_file_size', 1)
 let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 1)
+
+if g:statusline_mode ==? 'minimal'
+    let g:statusline_show_git_branch = 0
+    let g:statusline_show_file_size  = 0
+    let g:statusline_show_devicons   = 0
+endif
 
 " Disable NERDTree statusline
 let g:NERDTreeStatusline = -1
@@ -104,14 +111,14 @@ let s:filetype_modes = {
 
 " Hightlight mappings
 let g:statusline_colors = {
-            \ 'ActiveStatus':    'StatusLine',
-            \ 'InactiveStatus':  'StatusLineNC',
-            \ 'StatusSeparator': 'LineNr',
+            \ 'ActiveStatus':    'CursorLineNr',
+            \ 'InactiveStatus':  'LineNr',
+            \ 'StatusSeparator': 'Normal',
             \ 'TabTitle':        'CursorLineNr',
-            \ 'TabPlaceholder':  'LineNr',
-            \ 'ActiveTab':       'TabLineSel',
-            \ 'InactiveTab':     'TabLine',
-            \ 'TabSeparator':    'LineNr',
+            \ 'TabPlaceholder':  'Normal',
+            \ 'ActiveTab':       'CursorLineNr',
+            \ 'InactiveTab':     'Normal',
+            \ 'TabSeparator':    'Normal',
             \ 'CloseButton':     'CursorLineNr',
             \ }
 
@@ -489,7 +496,7 @@ function! StatusLine(winnum) abort
                     \ s:BuildGroup(printf('StatusLineLeftFill(%d)', a:winnum)),
                     \ '%=',
                     \ s:BuildGroup(printf('StatusLineRightFill(%d)', a:winnum)),
-                    \ '%*',
+                    \ s:HiSection('ActiveStatus'),
                     \ '%<',
                     \ s:BuildGroup(printf('StatusLineRightMode(%d)', a:winnum)),
                     \ ], '')
@@ -880,7 +887,7 @@ if exists('+tabline')
             endif
         endif
 
-        let stl .= s:HiSection('TabSeparator') . '%=' . '%*'
+        let stl .= s:HiSection('TabSeparator') . '%='
 
         if g:statusline_show_tab_close_button
             let stl .= s:HiSection('CloseButton') . '%999X  X  '
