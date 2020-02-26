@@ -827,10 +827,12 @@ if exists('+tabline')
                 let dev_icon = ' ' . WebDevIconsGetFileTypeSymbol(bufname) . ' '
             endif
 
-            if bufname[0] =~ '\~\|/'
-                let bufname = s:ShortenPath(bufname)
-            elseif strlen(bufname) > 30
-                let bufname = fnamemodify(bufname, ':t')
+            if strlen(bufname) > 30
+                if bufname[0] =~ '\~\|/'
+                    let bufname = s:ShortenPath(bufname)
+                else
+                    let bufname = fnamemodify(bufname, ':t')
+                endif
             endif
         endif
 
