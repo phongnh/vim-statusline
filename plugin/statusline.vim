@@ -31,7 +31,7 @@ let g:NERDTreeStatusline = -1
 " Window width
 let s:xsmall_window_width = 60
 let s:small_window_width  = 80
-let s:normal_window_width = 100
+let s:normal_window_width = 120
 
 " Number of displayable tabs
 let s:displayable_tab_count = 5
