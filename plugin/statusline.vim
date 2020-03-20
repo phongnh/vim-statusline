@@ -114,12 +114,12 @@ let g:statusline_colors = {
             \ 'ActiveStatus':    'CursorLineNr',
             \ 'InactiveStatus':  'LineNr',
             \ 'StatusSeparator': 'Normal',
-            \ 'TabTitle':        'CursorLineNr',
-            \ 'TabPlaceholder':  'Normal',
-            \ 'ActiveTab':       'CursorLineNr',
-            \ 'InactiveTab':     'Normal',
-            \ 'TabSeparator':    'Normal',
-            \ 'CloseButton':     'CursorLineNr',
+            \ 'TabTitle':        'StatusLine',
+            \ 'TabPlaceholder':  'CursorLineNr',
+            \ 'ActiveTab':       'Normal',
+            \ 'InactiveTab':     'CursorLineNr',
+            \ 'TabSeparator':    'CursorLineNr',
+            \ 'CloseButton':     'StatusLine',
             \ }
 
 function! s:HiSection(section) abort
