@@ -310,6 +310,10 @@ function! s:FileNameStatus(...) abort
     return s:FormatFileName(s:GetFileName(), winwidth, 50) . s:ModifiedStatus() . s:ReadonlyStatus()
 endfunction
 
+function! s:InactiveFileNameStatus(...) abort
+    return s:GetFileName() . s:ModifiedStatus() . s:ReadonlyStatus()
+endfunction
+
 function! s:IndentationStatus(...) abort
     let l:shiftwidth = exists('*shiftwidth') ? shiftwidth() : &shiftwidth
     let compact = get(a:, 1, 0)
@@ -458,10 +462,8 @@ function! StatusLineInactiveMode(...) abort
         return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode_inactive', '') ])
     endif
 
-    let l:winwidth = winwidth(get(a:, 1, 0))
-
     " « plugin/statusline.vim[+] »
-    return s:Wrap(s:FileNameStatus(l:winwidth - 2))
+    return s:Wrap(s:InactiveFileNameStatus())
 endfunction
 
 
