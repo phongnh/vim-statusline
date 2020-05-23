@@ -14,6 +14,7 @@ set cpo&vim
 " Settings
 let g:statusline_powerline             = get(g:, 'statusline_powerline', 0)
 let g:statusline_mode                  = get(g:, 'statusline_mode', 'default')
+let g:statusline_shorten_path          = get(g:, 'statusline_shorten_path', 0)
 let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
 let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
 let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 1)
@@ -207,7 +208,7 @@ function! s:FormatFileName(fname, winwidth, max_width) abort
         return fnamemodify(fname, ':t')
     endif
 
-    if strlen(fname) > a:winwidth && (fname[0] =~ '\~\|/')
+    if strlen(fname) > a:winwidth && (fname[0] =~ '\~\|/') && g:statusline_shorten_path
         let fname = s:ShortenPath(fname)
     endif
 
@@ -806,7 +807,7 @@ if exists('+tabline')
             endif
 
             if strlen(bufname) > 30
-                if bufname[0] =~ '\~\|/'
+                if bufname[0] =~ '\~\|/' && g:statusline_shorten_path
                     let bufname = s:ShortenPath(bufname)
                 else
                     let bufname = fnamemodify(bufname, ':t')
