@@ -68,6 +68,13 @@ call extend(s:symbols, {
             \ 'right_alt_sep':  ' ' . s:symbols.right_alt . ' ',
             \ })
 
+call extend(s:symbols, {
+            \ 'left_sep': '',
+            \ 'right_sep': '',
+            \ 'left_mode_sep':  ' ',
+            \ 'right_mode_sep': ' ',
+            \ })
+
 " Detect DevIcons
 let s:has_devicons = findfile('plugin/webdevicons.vim', &rtp) != ''
 " let s:has_devicons = exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
@@ -111,6 +118,10 @@ let s:filetype_modes = {
             \ 'agit_stat':         'Agit Stat',
             \ }
 
+function s:Hi(group) abort
+    return printf('%%#%s#', a:group)
+endfunction
+
 function! s:HiSection(section) abort
     return printf('%%#%s#', a:section)
 endfunction
@@ -149,10 +160,18 @@ function! s:ParseList(list, sep) abort
     return s:RemoveEmptyElement(l:list)
 endfunction
 
+function! s:BuildComponent(item, ...) abort
+    return s:Hi('StSep') . s:symbols.left_sep . s:Hi('StItem') . a:item . s:Hi('StSep') . s:symbols.right_sep . '%*'
+endfunction
+
+function! s:BuildComponent(item, ...) abort
+    return a:item
+endfunction
+
 function! s:BuildMode(parts, ...) abort
     let l:sep = get(a:, 1, s:symbols.left_mode_sep)
     let l:parts = s:ParseList(a:parts, l:sep)
-    return join(l:parts, l:sep)
+    return join(map(l:parts, 's:BuildComponent(v:val)'), l:sep)
 endfunction
 
 function! s:BuildRightMode(parts) abort
@@ -456,6 +475,49 @@ function! StatusLineInactiveMode(...) abort
     return s:Wrap(s:InactiveFileNameStatus())
 endfunction
 
+function! StatusLineMode() abort
+    return ''
+    return 'Mode'
+endfunction
+
+function! StatusLineGitBranch() abort
+    " custom status
+    let l:mode = s:CustomMode()
+    if len(l:mode)
+        return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode', '') ])
+    endif
+
+    let l:winwidth = winwidth(get(a:, 1, 0))
+    let show_more_info = (l:winwidth >= s:small_window_width)
+
+    " return ''
+
+    return show_more_info ? s:GitBranchStatus(l:winwidth) : ''
+endfunction
+
+function! StatusLineFile() abort
+    " custom status
+    let l:mode = s:CustomMode()
+    if len(l:mode)
+        return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode', '') ])
+    endif
+
+    let l:winwidth = winwidth(get(a:, 1, 0))
+
+    " return ''
+    return s:FileNameStatus(l:winwidth - 2)
+endfunction
+
+function! s:item(item) abort
+    return '%( ' . '%{' . a:item . '} %)'
+endfunction
+
+function! s:items(...) abort
+    let l:items = s:EnsureList(a:000)
+    let l:items = map(copy(l:items), "s:item(v:val)")
+    " return s:Hi('StSep') . s:symbols.left_sep . s:Hi('StItem') . a:item . s:Hi('StSep') . s:symbols.right_sep . '%*'
+    return '%(' . join(l:items, s:Hi('StSep') . s:symbols.right_sep . ' ' . s:symbols.left_sep ) . '%)'
+endfunction
 
 function! StatusLine(winnum) abort
     " Goyo Integration
@@ -468,19 +530,28 @@ function! StatusLine(winnum) abort
     endif
 
     if a:winnum == winnr()
-        return join([
-                    \ s:HiSection('StItem'),
-                    \ '%<',
-                    \ s:BuildGroup(printf('StatusLineActiveMode(%d)', a:winnum)),
-                    \ s:HiSection('StSep'),
-                    \ s:BuildGroup(printf('StatusLineLeftFill(%d)', a:winnum)),
-                    \ s:HiSection('StFill'),
-                    \ '%=',
-                    \ s:BuildGroup(printf('StatusLineRightFill(%d)', a:winnum)),
-                    \ s:HiSection('StItem'),
-                    \ '%<',
-                    \ s:BuildGroup(printf('StatusLineRightMode(%d)', a:winnum)),
+        let stl = '%#Statusline#%(%#StSep#%{StatusLineMode() != "" ? "█" : ""}%#StItem#%{StatusLineMode()}%{StatusLineMode() != "" ? "█" : ""}%*%) %(%(█%{StatusLineGitBranch()}█%) %(█%{StatusLineFile()}█%)%)'
+        echomsg stl
+        return stl
+        let stl = join([
+                    \ s:Hi('StActive'),
+                    \ s:items('StatusLineMode()', 'StatusLineFile()'),
                     \ ], '')
+        echomsg stl
+        return stl
+        " return join([
+        "             \ s:HiSection('StItem'),
+        "             \ '%<',
+        "             \ StatusLineActiveMode(a:winnum),
+        "             \ s:HiSection('StSep'),
+        "             \ StatusLineLeftFill(a:winnum),
+        "             \ s:HiSection('StFill'),
+        "             \ '%=',
+        "             \ StatusLineRightFill(a:winnum),
+        "             \ s:HiSection('StItem'),
+        "             \ '%<',
+        "             \ StatusLineRightMode(a:winnum),
+        "             \ ], '')
     else
         return s:HiSection('StItemNC') .
                     \ '%<' .
@@ -851,6 +922,23 @@ endfunction
 
 command! RefreshStatusLine :call s:RefreshStatusLine()
 
+function! s:SetStatuslineColors() abort
+    let s:normal_bg = synIDattr(hlID('Normal'), 'bg')
+    let s:normal_fg = synIDattr(hlID('Normal'), 'fg')
+    let s:warning_fg = synIDattr(hlID('WarningMsg'), 'fg')
+    let s:error_fg = synIDattr(hlID('ErrorMsg'), 'fg')
+
+    silent! exe 'hi StItem guibg='.s:normal_fg.' guifg='.s:normal_bg.' gui=NONE'
+    silent! exe 'hi StSep guifg='.s:normal_fg.' guibg=NONE gui=NONE'
+    silent! exe 'hi StErr guibg='.s:error_fg.' guifg='.s:normal_bg.' gui=bold'
+    silent! exe 'hi StErrSep guifg='.s:error_fg.' guibg=NONE gui=NONE'
+    silent! exe 'hi StWarn guibg='.s:warning_fg.' guifg='.s:normal_bg.' gui=bold'
+    silent! exe 'hi StWarnSep guifg='.s:warning_fg.' guibg=NONE gui=NONE'
+    silent! exe 'hi Statusline guifg=NONE guibg='.s:normal_bg.' gui=NONE cterm=NONE'
+endfunction
+
+call s:SetStatuslineColors()
+
 augroup VimStatusLine
     autocmd!
     autocmd WinEnter,BufEnter,BufDelete,SessionLoadPost * call <SID>RefreshStatusLine()
@@ -864,6 +952,7 @@ augroup VimStatusLine
                 \ if !has('vim_starting') || expand('<amatch>') !=# 'macvim'
                 \   | call <SID>RefreshStatusLine() |
                 \ endif
+    autocmd VimEnter,ColorScheme * call s:SetStatuslineColors()
 augroup END
 
 " Init tabline
