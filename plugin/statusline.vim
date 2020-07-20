@@ -108,21 +108,8 @@ let s:filetype_modes = {
             \ 'agit_stat':         'Agit Stat',
             \ }
 
-" Hightlight mappings
-let g:statusline_colors = {
-            \ 'ActiveStatus':    'CursorLineNr',
-            \ 'InactiveStatus':  'LineNr',
-            \ 'StatusSeparator': 'Normal',
-            \ 'TabTitle':        'StatusLine',
-            \ 'TabPlaceholder':  'CursorLineNr',
-            \ 'ActiveTab':       'Normal',
-            \ 'InactiveTab':     'CursorLineNr',
-            \ 'TabSeparator':    'CursorLineNr',
-            \ 'CloseButton':     'StatusLine',
-            \ }
-
 function! s:HiSection(section) abort
-    return printf('%%#%s#', g:statusline_colors[a:section])
+    return printf('%%#%s#', a:section)
 endfunction
 
 function! s:Strip(str) abort
@@ -470,19 +457,20 @@ endfunction
 function! StatusLine(winnum) abort
     if a:winnum == winnr()
         return join([
-                    \ s:HiSection('ActiveStatus'),
+                    \ s:HiSection('StItem'),
                     \ '%<',
                     \ s:BuildGroup(printf('StatusLineActiveMode(%d)', a:winnum)),
-                    \ s:HiSection('StatusSeparator'),
+                    \ s:HiSection('StSep'),
                     \ s:BuildGroup(printf('StatusLineLeftFill(%d)', a:winnum)),
+                    \ s:HiSection('StFill'),
                     \ '%=',
                     \ s:BuildGroup(printf('StatusLineRightFill(%d)', a:winnum)),
-                    \ s:HiSection('ActiveStatus'),
+                    \ s:HiSection('StItem'),
                     \ '%<',
                     \ s:BuildGroup(printf('StatusLineRightMode(%d)', a:winnum)),
                     \ ], '')
     else
-        return s:HiSection('InactiveStatus') .
+        return s:HiSection('StItemNC') .
                     \ '%<' .
                     \ s:BuildGroup(printf('StatusLineInactiveMode(%d)', a:winnum))
     endif
@@ -756,6 +744,69 @@ endfunction
 
 let g:ZoomWin_funcref= function('ZoomWinStatusLine')
 
+" Set status colors
+function! s:SetStatusColors() abort
+    let l:item_hl_id   = hlID('CursorLine')
+    let l:item_guifg   = synIDattr(l:item_hl_id, 'fg', 'gui')
+    let l:item_ctermfg = synIDattr(l:item_hl_id, 'fg', 'cterm')
+
+    if empty(l:item_guifg)
+        let l:item_hl_id   = hlID('CursorLineNr')
+        let l:item_guifg   = synIDattr(l:item_hl_id, 'fg', 'gui')
+        let l:item_ctermfg = synIDattr(l:item_hl_id, 'fg', 'cterm')
+    endif
+
+    if empty(l:item_guifg)
+        let l:item_hl_id   = hlID('StatusLine')
+        let l:item_guifg   = synIDattr(l:item_hl_id, 'bg', 'gui')
+        let l:item_ctermfg = synIDattr(l:item_hl_id, 'bg', 'cterm')
+    endif
+
+    let l:item_nc_hl_id   = hlID('LineNr')
+    let l:item_nc_guifg   = synIDattr(l:item_nc_hl_id, 'fg', 'gui')
+    let l:item_nc_ctermfg = synIDattr(l:item_nc_hl_id, 'fg', 'cterm')
+
+    if empty(l:item_nc_guifg)
+        let l:item_nc_hl_id   = hlID('StatusLineNC')
+        let l:item_nc_guifg   = synIDattr(l:item_nc_hl_id, 'bg', 'gui')
+        let l:item_nc_ctermfg = synIDattr(l:item_nc_hl_id, 'bg', 'cterm')
+    endif
+
+    let l:sep_guifg   = l:item_guifg
+    let l:sep_ctermfg = l:item_ctermfg
+
+    let l:tab_item_guifg   = l:item_guifg
+    let l:tab_item_ctermfg = l:item_ctermfg
+    let l:tab_item_nc_guifg   = l:item_nc_guifg
+    let l:tab_item_nc_ctermfg = l:item_nc_ctermfg
+
+    silent! execute 'hi StItem guibg=NONE guifg=' . l:item_guifg . ' gui=bold cterm=bold'
+    if strlen(l:item_ctermfg)
+        silent! execute 'hi StItem ctermbg=NONE ctermfg=' . l:item_ctermfg
+    endif
+    silent! execute 'hi StItemNC guibg=NONE guifg=' . l:item_nc_guifg . ' gui=NONE'
+    if strlen(l:item_nc_ctermfg)
+        silent! execute 'hi StItemNC ctermbg=NONE ctermfg=' . l:item_nc_ctermfg . ' cterm=NONE'
+    endif
+    silent! execute 'hi StSep guibg=NONE guifg=' . l:sep_guifg . ' gui=NONE'
+    if strlen(l:sep_ctermfg)
+        silent! execute 'hi StSep ctermbg=NONE ctermfg=' . l:sep_ctermfg . ' cterm=NONE'
+    endif
+    silent! execute 'hi StFill guibg=NONE guifg=NONE gui=NONE ctermbg=NONE ctermfg=NONE cterm=NONE'
+    silent! execute 'hi link StTabTitle StatusLine'
+    silent! execute 'hi link StTabCloseButton StTabTitle'
+    silent! execute 'hi StTabItem guibg=NONE guifg=' . l:tab_item_guifg . ' gui=bold cterm=bold'
+    if strlen(l:tab_item_ctermfg)
+        silent! execute 'hi StTabItem ctermbg=NONE ctermfg=' . l:tab_item_ctermfg
+    endif
+    silent! execute 'hi StTabItemNC guibg=NONE guifg=' . l:tab_item_nc_guifg . ' gui=NONE'
+    if strlen(l:tab_item_nc_ctermfg)
+        silent! execute 'hi StTabItemNC ctermbg=NONE ctermfg=' . l:tab_item_nc_ctermfg . ' cterm=NONE'
+    endif
+    silent! execute 'hi link StTabFill StFill'
+    silent! execute 'hi link StTabPlaceholder StTabItemNC'
+endfunction
+
 " Init statusline
 
 function! s:RefreshStatusLine() abort
@@ -772,6 +823,7 @@ augroup VimStatusLine
     if !has('patch-8.1.1715')
         autocmd FileType qf call <SID>RefreshStatusLine()
     endif
+    autocmd VimEnter,ColorScheme * call s:SetStatusColors()
     autocmd ColorScheme *
                 \ if !has('vim_starting') || expand('<amatch>') !=# 'macvim'
                 \   | call <SID>RefreshStatusLine() |
@@ -781,7 +833,7 @@ augroup END
 " Init tabline
 if exists('+tabline')
     function! s:TabPlaceholder(tab) abort
-        return s:HiSection('TabPlaceholder') . printf('%%%d  %s %%*', a:tab, s:symbols.ellipsis)
+        return s:HiSection('StTabPlaceholder') . printf('%%%d  %s %%*', a:tab, s:symbols.ellipsis)
     endfunction
 
     function! s:TabLabel(tabnr) abort
@@ -792,7 +844,7 @@ if exists('+tabline')
         let bufname = bufname(bufnr)
 
         let label = '%' . tabnr . 'T'
-        let label .= (tabnr == tabpagenr() ? s:HiSection('ActiveTab') : s:HiSection('InactiveTab'))
+        let label .= (tabnr == tabpagenr() ? s:HiSection('StTabItem') : s:HiSection('StTabItemNC'))
         let label .= ' ' . tabnr . ':'
 
         let dev_icon = ''
@@ -827,7 +879,7 @@ if exists('+tabline')
     endfunction
 
     function! Tabline() abort
-        let stl = s:HiSection('TabTitle') . ' TABS %*'
+        let stl = s:HiSection('StTabTitle') . ' TABS %*'
 
         let tab_count = tabpagenr('$')
         let max_tab_count = s:displayable_tab_count
@@ -870,10 +922,10 @@ if exists('+tabline')
             endif
         endif
 
-        let stl .= s:HiSection('TabSeparator') . '%='
+        let stl .= s:HiSection('StTabFill') . '%='
 
         if g:statusline_show_tab_close_button
-            let stl .= s:HiSection('CloseButton') . '%999X  X  '
+            let stl .= s:HiSection('StTabCloseButton') . '%999X  X  '
         endif
 
         return stl
