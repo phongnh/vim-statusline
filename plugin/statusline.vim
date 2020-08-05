@@ -91,6 +91,7 @@ let s:filename_modes = {
 let s:filetype_modes = {
             \ 'netrw':             'NetrwTree',
             \ 'nerdtree':          'NERDTree',
+            \ 'LuaTree':           'LuaTree',
             \ 'fern':              'Fern',
             \ 'startify':          'Startify',
             \ 'tagbar':            'Tagbar',
