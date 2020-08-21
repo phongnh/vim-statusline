@@ -457,8 +457,13 @@ endfunction
 
 
 function! StatusLine(winnum) abort
-    if exists('s:goyo_mode')
-        return ''
+    " Goyo Integration
+    if exists('#goyo')
+        if a:winnum == winnr()
+            return ''
+        else
+            return s:HiSection('StNone')
+        endif
     endif
 
     if a:winnum == winnr()
@@ -750,23 +755,6 @@ endfunction
 
 let g:ZoomWin_funcref= function('ZoomWinStatusLine')
 
-" Goyo Integration
-function! s:GoyoEnter() abort
-    let s:goyo_mode = 1
-    call s:RefreshStatusLine()
-endfunction
-
-function! s:GoyoLeave() abort
-    unlet! s:goyo_mode
-    call s:RefreshStatusLine()
-endfunction
-
-augroup GoyoIntegration
-    autocmd!
-    autocmd! User GoyoEnter nested call <SID>GoyoEnter()
-    autocmd! User GoyoLeave nested call <SID>GoyoLeave()
-augroup  END
-
 " Set status colors
 function! s:SetStatusColors() abort
     let l:item_hl_id   = hlID('CursorLine')
@@ -802,6 +790,8 @@ function! s:SetStatusColors() abort
     let l:tab_item_ctermfg = l:item_ctermfg
     let l:tab_item_nc_guifg   = l:item_nc_guifg
     let l:tab_item_nc_ctermfg = l:item_nc_ctermfg
+
+    silent! execute 'hi StNone guibg=NONE guifg=NONE ctermbg=NONE ctermfg=NONE'
 
     silent! execute 'hi StItem guibg=NONE guifg=' . l:item_guifg . ' gui=bold cterm=bold'
     if strlen(l:item_ctermfg)
