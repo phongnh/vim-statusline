@@ -37,8 +37,8 @@ let s:displayable_tab_count = 5
 
 " Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
 let s:symbols = {
-            \ 'clipboard':      'ⓒ  ',
-            \ 'paste':          'Ⓟ  ',
+            \ 'clipboard':      '🅒  ',
+            \ 'paste':          '🅟  ',
             \ 'left':           '»',
             \ 'left_alt':       '»',
             \ 'right':          '«',
