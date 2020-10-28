@@ -671,13 +671,9 @@ function! s:GetVaffleMode(...) abort
     let pattern = '^vaffle://\(\d\+\)/\(.\+\)$'
     let data = matchlist(vaffle_name, pattern)
 
-    if len(data)
-        let vaffle_num    = get(data, 1, 0)
-        let vaffle_folder = get(data, 2, '')
-        let vaffle_folder = fnamemodify(vaffle_folder, ':p:~:h')
-
-        let result['name']  = 'Vaffle#' . vaffle_num
-        let result['lfill'] = vaffle_folder
+    let vaffle_folder = get(data, 2, '')
+    if strlen(vaffle_folder)
+        let result['lfill'] = fnamemodify(vaffle_folder, ':p:~:h')
     endif
 
     return result
