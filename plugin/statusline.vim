@@ -654,7 +654,7 @@ function! s:GetFernMode(...) abort
         endif
 
         let fern_folder = get(data, 2, '')
-        let fern_folder = substitute(fern_folder, ';\?\(#.\+\)\?$', '', '')
+        let fern_folder = substitute(fern_folder, ';\?\(#.\+\)\?\$\?$', '', '')
         let fern_folder = fnamemodify(fern_folder, ':p:~:.:h')
 
         let result['lfill'] = fern_folder
