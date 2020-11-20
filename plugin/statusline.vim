@@ -430,7 +430,7 @@ function! StatusLineRightMode(...) abort
 
     let l:winwidth = winwidth(get(a:, 1, 0))
     let show_more_info = (l:winwidth >= s:small_window_width)
-    let compact = s:IsCompact(l:winwidth)
+    let compact = g:statusline_show_git_branch && s:IsCompact(l:winwidth)
 
     return s:BuildRightMode([
                 \ show_more_info ? s:IndentationStatus(compact) : '',
