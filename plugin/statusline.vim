@@ -358,11 +358,12 @@ function! s:GitBranchStatus(...) abort
     return ''
 endfunction
 
+function! s:IsClipboardEnabled() abort
+    return match(&clipboard, 'unnamed') > -1
+endfunction
+
 function! s:ClipboardStatus() abort
-    if match(&clipboard, 'unnamed') > -1
-        return s:symbols.clipboard
-    endif
-    return ''
+    return s:IsClipboardEnabled() ? s:symbols.clipboard : ''
 endfunction
 
 function! s:PasteStatus() abort
@@ -380,7 +381,7 @@ function! s:SpellStatus() abort
 endfunction
 
 function! s:IsCompact(winwidth) abort
-    return &spell || &paste || strlen(s:ClipboardStatus()) || a:winwidth <= s:xsmall_window_width
+    return &spell || &paste || s:IsClipboardEnabled() || a:winwidth <= s:xsmall_window_width
 endfunction
 
 function! s:BuildGroup(exp) abort
