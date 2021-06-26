@@ -68,10 +68,6 @@ call extend(s:symbols, {
             \ 'right_alt_sep':  ' ' . s:symbols.right_alt . ' ',
             \ })
 
-" Detect DevIcons
-let s:has_devicons = findfile('plugin/webdevicons.vim', &rtp) != ''
-" let s:has_devicons = exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
-
 " Alternate status dictionaries
 let s:filename_modes = {
             \ 'ControlP':             'CtrlP',
@@ -114,6 +110,31 @@ let s:filetype_modes = {
             \ 'agit_diff':         'Agit Diff',
             \ 'agit_stat':         'Agit Stat',
             \ }
+
+" Detect vim-devicons or nerdfont.vim
+let s:statusline_show_devicons = 0
+if g:statusline_show_devicons && findfile('autoload/nerdfont.vim', &rtp) != ''
+    let s:statusline_show_devicons = 1
+
+    function! s:GetFileTypeSymbol(filename) abort
+        return nerdfont#find(a:filename)
+    endfunction
+
+    function! s:GetFileFormatSymbol(...) abort
+        return nerdfont#fileformat#find()
+    endfunction
+elseif g:statusline_show_devicons && findfile('plugin/webdevicons.vim', &rtp) != ''
+    " exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
+    let s:statusline_show_devicons = 1
+
+    function! s:GetFileTypeSymbol(filename) abort
+        return WebDevIconsGetFileTypeSymbol(a:filename)
+    endfunction
+
+    function! s:GetFileFormatSymbol(...) abort
+        return WebDevIconsGetFileFormatSymbol()
+    endfunction
+endif
 
 function! s:HiSection(section) abort
     return printf('%%#%s#', a:section)
@@ -339,10 +360,10 @@ function! s:FileInfoStatus(...) abort
 
     let compact = get(a:, 1, 0)
 
-    if g:statusline_show_devicons && s:has_devicons && !compact
+    if s:statusline_show_devicons && !compact
         call extend(parts, [
-                    \ WebDevIconsGetFileTypeSymbol(expand('%')) . ' ',
-                    \ WebDevIconsGetFileFormatSymbol() . ' ',
+                    \ s:GetFileTypeSymbol(expand('%')) . ' ',
+                    \ s:GetFileFormatSymbol() . ' ',
                     \ ])
     endif
 
@@ -897,8 +918,8 @@ if exists('+tabline')
         else
             let bufname = fnamemodify(bufname, ':p:~:.')
 
-            if g:statusline_show_devicons && s:has_devicons
-                let dev_icon = ' ' . WebDevIconsGetFileTypeSymbol(bufname) . ' '
+            if s:statusline_show_devicons
+                let dev_icon = ' ' . s:GetFileTypeSymbol(bufname) . ' '
             endif
 
             if strlen(bufname) > 30
