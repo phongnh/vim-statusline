@@ -144,7 +144,7 @@ endif
 
 " Show Vim Logo in Tabline
 if g:statusline_show_vim_logo && s:statusline_show_devicons
-    let s:symbols.tabs = "\ue7c5"
+    let s:symbols.tabs = "\ue7c5" . ' '
 endif
 
 function! s:HiSection(section) abort
