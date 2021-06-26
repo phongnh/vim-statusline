@@ -112,8 +112,13 @@ let s:filetype_modes = {
             \ }
 
 " Detect vim-devicons or nerdfont.vim
+let s:has_devicons = (findfile('plugin/webdevicons.vim', &rtp) != '')
+" let s:has_devicons = exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
+let s:has_nerdfont = (findfile('autoload/nerdfont.vim', &rtp) != '')
+
 let s:statusline_show_devicons = 0
-if g:statusline_show_devicons && findfile('autoload/nerdfont.vim', &rtp) != ''
+
+if g:statusline_show_devicons && s:has_nerdfont
     let s:statusline_show_devicons = 1
 
     function! s:GetFileTypeSymbol(filename) abort
@@ -123,8 +128,7 @@ if g:statusline_show_devicons && findfile('autoload/nerdfont.vim', &rtp) != ''
     function! s:GetFileFormatSymbol(...) abort
         return nerdfont#fileformat#find()
     endfunction
-elseif g:statusline_show_devicons && findfile('plugin/webdevicons.vim', &rtp) != ''
-    " exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
+elseif g:statusline_show_devicons && s:has_devicons
     let s:statusline_show_devicons = 1
 
     function! s:GetFileTypeSymbol(filename) abort
