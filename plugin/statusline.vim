@@ -18,6 +18,7 @@ let g:statusline_shorten_path          = get(g:, 'statusline_shorten_path', 0)
 let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
 let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
 let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 1)
+let g:statusline_show_vim_logo         = get(g:, 'statusline_show_vim_logo', 1)
 
 if g:statusline_mode ==? 'minimal'
     let g:statusline_show_git_branch = 0
@@ -37,6 +38,7 @@ let s:displayable_tab_count = 5
 
 " Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
 let s:symbols = {
+            \ 'tabs':           'TABS',
             \ 'clipboard':      '🅒  ',
             \ 'paste':          '🅟  ',
             \ 'left':           '»',
@@ -138,6 +140,11 @@ elseif g:statusline_show_devicons && s:has_devicons
     function! s:GetFileFormatSymbol(...) abort
         return WebDevIconsGetFileFormatSymbol()
     endfunction
+endif
+
+" Show Vim Logo in Tabline
+if g:statusline_show_vim_logo && s:statusline_show_devicons
+    let s:symbols.tabs = "\ue7c5"
 endif
 
 function! s:HiSection(section) abort
@@ -945,7 +952,7 @@ if exists('+tabline')
     endfunction
 
     function! Tabline() abort
-        let stl = s:HiSection('StTabTitle') . ' TABS %*'
+        let stl = s:HiSection('StTabTitle') . ' ' . s:symbols.tabs . ' ' . '%*'
 
         let tab_count = tabpagenr('$')
         let max_tab_count = s:displayable_tab_count
