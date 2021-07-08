@@ -890,7 +890,7 @@ command! RefreshStatusLine :call s:RefreshStatusLine()
 
 augroup VimStatusLine
     autocmd!
-    autocmd WinEnter,BufEnter,BufDelete,SessionLoadPost * call <SID>RefreshStatusLine()
+    autocmd WinEnter,BufEnter,BufDelete,SessionLoadPost,FileChangedShellPost * call <SID>RefreshStatusLine()
     if !has('patch-8.1.1715')
         autocmd FileType qf call <SID>RefreshStatusLine()
     endif
@@ -902,6 +902,8 @@ augroup VimStatusLine
                 \ endif
     autocmd VimResized * call <SID>RefreshStatusLine()
 augroup END
+
+let g:qf_disable_statusline = 1
 
 " Init tabline
 if exists('+tabline')
