@@ -92,6 +92,7 @@ let s:filetype_modes = {
             \ 'netrw':             'NetrwTree',
             \ 'nerdtree':          'NERDTree',
             \ 'chadtree':          'CHADTree',
+            \ 'NvimTree':          'NvimTree',
             \ 'LuaTree':           'LuaTree',
             \ 'fern':              'Fern',
             \ 'vaffle':            'Vaffle',
