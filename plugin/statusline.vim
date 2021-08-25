@@ -96,6 +96,7 @@ let s:filetype_modes = {
             \ 'LuaTree':           'LuaTree',
             \ 'fern':              'Fern',
             \ 'vaffle':            'Vaffle',
+            \ 'dirvish':           'Dirvish',
             \ 'Mundo':             'Mundo',
             \ 'MundoDiff':         'Mundo Preview',
             \ 'startify':          'Startify',
@@ -582,6 +583,10 @@ function! s:CustomMode() abort
             return extend(result, s:GetVaffleMode(expand('%')))
         endif
 
+        if ft ==# 'dirvish'
+            return extend(result, s:GetDirvishMode(expand('%')))
+        endif
+
         if ft ==# 'tagbar'
             return extend(result, s:GetTagbarMode())
         endif
@@ -715,6 +720,10 @@ function! s:GetVaffleMode(...) abort
     endif
 
     return result
+endfunction
+
+function! s:GetDirvishMode(...) abort
+    return { 'lfill': fnamemodify(get(a:, 1, expand('%')), ':p:h') }
 endfunction
 
 " CtrlSF Integration
