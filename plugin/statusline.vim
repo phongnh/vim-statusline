@@ -899,7 +899,7 @@ command! RefreshStatusLine :call s:RefreshStatusLine()
 
 augroup VimStatusLine
     autocmd!
-    autocmd WinEnter,BufEnter,BufDelete,SessionLoadPost,FileChangedShellPost * call <SID>RefreshStatusLine()
+    autocmd WinEnter,BufEnter,SessionLoadPost,FileChangedShellPost * call <SID>RefreshStatusLine()
     if !has('patch-8.1.1715')
         autocmd FileType qf call <SID>RefreshStatusLine()
     endif
