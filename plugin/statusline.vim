@@ -93,7 +93,6 @@ let s:filetype_modes = {
             \ 'nerdtree':          'NERDTree',
             \ 'chadtree':          'CHADTree',
             \ 'NvimTree':          'NvimTree',
-            \ 'LuaTree':           'LuaTree',
             \ 'fern':              'Fern',
             \ 'vaffle':            'Vaffle',
             \ 'dirvish':           'Dirvish',
@@ -904,7 +903,7 @@ augroup VimStatusLine
     if !has('patch-8.1.1715')
         autocmd FileType qf call <SID>RefreshStatusLine()
     endif
-    autocmd FileType LuaTree call <SID>RefreshStatusLine()
+    autocmd FileType NvimTree call <SID>RefreshStatusLine()
     autocmd VimEnter,ColorScheme * call s:SetStatusColors()
     autocmd ColorScheme *
                 \ if !has('vim_starting') || expand('<amatch>') !=# 'macvim'
