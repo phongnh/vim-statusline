@@ -37,7 +37,9 @@ let s:normal_window_width = 120
 let s:displayable_tab_count = 5
 
 " Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
+" ◯  ⬤  ⚫ ⚬ ●
 let s:symbols = {
+            \ 'circle':         '● ',
             \ 'tabs':           'TABS',
             \ 'clipboard':      '🅒  ',
             \ 'paste':          '🅟  ',
@@ -435,7 +437,7 @@ function! StatusLineActiveMode(...) abort
     let l:winwidth = winwidth(get(a:, 1, 0))
     let show_more_info = (l:winwidth >= s:small_window_width)
 
-    return s:BuildMode([
+    return s:symbols.circle . s:BuildMode([
                 \ show_more_info ? s:GitBranchStatus(l:winwidth) : '',
                 \ [s:ClipboardStatus(), s:PasteStatus()],
                 \ s:FileNameStatus(l:winwidth - 2)
