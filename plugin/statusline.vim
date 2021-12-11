@@ -116,33 +116,32 @@ let s:filetype_modes = {
             \ 'agit_stat':         'Agit Stat',
             \ }
 
-" Detect vim-devicons or nerdfont.vim
-let s:has_devicons = (findfile('plugin/webdevicons.vim', &rtp) != '')
-" let s:has_devicons = exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
-let s:has_nerdfont = (findfile('autoload/nerdfont.vim', &rtp) != '')
-
 let s:statusline_show_devicons = 0
 
-if g:statusline_show_devicons && s:has_nerdfont
-    let s:statusline_show_devicons = 1
+if g:statusline_show_devicons
+    " Detect vim-devicons or nerdfont.vim
+    " let s:has_devicons = exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
+    if findfile('autoload/nerdfont.vim', &rtp) != ''
+        let s:statusline_show_devicons = 1
 
-    function! s:GetFileTypeSymbol(filename) abort
-        return nerdfont#find(a:filename)
-    endfunction
+        function! s:GetFileTypeSymbol(filename) abort
+            return nerdfont#find(a:filename)
+        endfunction
 
-    function! s:GetFileFormatSymbol(...) abort
-        return nerdfont#fileformat#find()
-    endfunction
-elseif g:statusline_show_devicons && s:has_devicons
-    let s:statusline_show_devicons = 1
+        function! s:GetFileFormatSymbol(...) abort
+            return nerdfont#fileformat#find()
+        endfunction
+    elseif findfile('plugin/webdevicons.vim', &rtp) != ''
+        let s:statusline_show_devicons = 1
 
-    function! s:GetFileTypeSymbol(filename) abort
-        return WebDevIconsGetFileTypeSymbol(a:filename)
-    endfunction
+        function! s:GetFileTypeSymbol(filename) abort
+            return WebDevIconsGetFileTypeSymbol(a:filename)
+        endfunction
 
-    function! s:GetFileFormatSymbol(...) abort
-        return WebDevIconsGetFileFormatSymbol()
-    endfunction
+        function! s:GetFileFormatSymbol(...) abort
+            return WebDevIconsGetFileFormatSymbol()
+        endfunction
+    endif
 endif
 
 " Show Vim Logo in Tabline
