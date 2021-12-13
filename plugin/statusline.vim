@@ -37,12 +37,10 @@ let s:normal_window_width = 120
 let s:displayable_tab_count = 5
 
 " Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
-" ◯  ⬤  ⚫ ⚬ ●
 let s:symbols = {
-            \ 'circle':         '● ',
             \ 'tabs':           'TABS',
-            \ 'clipboard':      '🅒  ',
-            \ 'paste':          '🅟  ',
+            \ 'clipboard':      '🅒 ',
+            \ 'paste':          '🅟 ',
             \ 'left':           '»',
             \ 'left_alt':       '»',
             \ 'right':          '«',
@@ -436,9 +434,8 @@ function! StatusLineActiveMode(...) abort
     let l:winwidth = winwidth(get(a:, 1, 0))
     let show_more_info = (l:winwidth >= s:small_window_width)
 
-    return s:symbols.circle . s:BuildMode([
+    return s:BuildMode([
                 \ show_more_info ? s:GitBranchStatus(l:winwidth) : '',
-                \ [s:ClipboardStatus(), s:PasteStatus()],
                 \ s:FileNameStatus(l:winwidth - 2)
                 \ ])
 endfunction
@@ -454,7 +451,9 @@ function! StatusLineLeftFill(...) abort
     if l:winwidth >= s:small_window_width
     endif
 
-    return ''
+    return s:BuildMode([
+                \ [s:ClipboardStatus(), s:PasteStatus()],
+                \ ])
 endfunction
 
 function! StatusLineRightMode(...) abort
@@ -516,7 +515,7 @@ function! StatusLine(winnum) abort
                     \ s:HiSection('StFill'),
                     \ '%=',
                     \ s:BuildGroup(printf('StatusLineRightFill(%d)', a:winnum)),
-                    \ s:HiSection('StItem'),
+                    \ s:HiSection('StInfo'),
                     \ '%<',
                     \ s:BuildGroup(printf('StatusLineRightMode(%d)', a:winnum)),
                     \ ], '')
@@ -823,69 +822,83 @@ endfunction
 
 let g:ZoomWin_funcref= function('ZoomWinStatusLine')
 
+function! s:ExtractHlID(name) abort
+    let l:hl_id   = hlID(a:name)
+    let l:guibg   = synIDattr(l:hl_id, 'bg', 'gui')
+    let l:guifg   = synIDattr(l:hl_id, 'fg', 'gui')
+    let l:ctermbg = synIDattr(l:hl_id, 'bg', 'cterm')
+    let l:ctermfg = synIDattr(l:hl_id, 'fg', 'cterm')
+    return {
+                \ 'guibg': l:guibg,
+                \ 'guifg': l:guifg,
+                \ 'ctermbg': l:ctermbg,
+                \ 'ctermfg': l:ctermfg,
+                \ }
+endfunction
+
+function! s:Highlight(group, attrs) abort
+    let l:cmd = printf('hi! %s', a:group)
+    for [key, value] in items(a:attrs)
+        if !empty(value)
+            let l:cmd .= printf(' %s=%s', key, value)
+        endif
+    endfor
+    silent! execute l:cmd
+endfunction
+
 " Set status colors
+
 function! s:SetStatusColors() abort
-    let l:item_hl_id   = hlID('CursorLine')
-    let l:item_guifg   = synIDattr(l:item_hl_id, 'fg', 'gui')
-    let l:item_ctermfg = synIDattr(l:item_hl_id, 'fg', 'cterm')
+    silent! execute 'hi! StNone guibg=NONE guifg=NONE ctermbg=NONE ctermfg=NONE'
 
-    if empty(l:item_guifg)
-        let l:item_hl_id   = hlID('CursorLineNr')
-        let l:item_guifg   = synIDattr(l:item_hl_id, 'fg', 'gui')
-        let l:item_ctermfg = synIDattr(l:item_hl_id, 'fg', 'cterm')
-    endif
+    let l:normal_mode    = s:ExtractHlID('NormalMode')
+    let l:line_nr        = s:ExtractHlID('LineNr')
+    let l:cursor_line    = s:ExtractHlID('CursorLineNr')
+    let l:cursor_line_nr = s:ExtractHlID('CursorLineNr')
+    let l:status_line    = s:ExtractHlID('StatusLine')
+    let l:status_line_nc = s:ExtractHlID('StatusLineNC')
 
-    if empty(l:item_guifg)
-        let l:item_hl_id   = hlID('StatusLine')
-        let l:item_guifg   = synIDattr(l:item_hl_id, 'bg', 'gui')
-        let l:item_ctermfg = synIDattr(l:item_hl_id, 'bg', 'cterm')
-    endif
+    call s:Highlight('StItem', {
+                \ 'guibg':   l:normal_mode.guibg,
+                \ 'guifg':   l:normal_mode.guifg,
+                \ 'ctermbg': l:normal_mode.ctermbg,
+                \ 'ctermfg': l:normal_mode.ctermfg,
+                \ 'gui':     'reverse,bold',
+                \ 'cterm':   'reverse,bold',
+                \ })
 
-    let l:item_nc_hl_id   = hlID('LineNr')
-    let l:item_nc_guifg   = synIDattr(l:item_nc_hl_id, 'fg', 'gui')
-    let l:item_nc_ctermfg = synIDattr(l:item_nc_hl_id, 'fg', 'cterm')
+    call s:Highlight('StSep', {
+                \ 'guibg':   l:line_nr.guifg,
+                \ 'guifg':   l:status_line.guibg,
+                \ 'ctermbg': l:line_nr.ctermfg,
+                \ 'ctermfg': l:status_line.ctermbg,
+                \ })
 
-    if empty(l:item_nc_guifg)
-        let l:item_nc_hl_id   = hlID('StatusLineNC')
-        let l:item_nc_guifg   = synIDattr(l:item_nc_hl_id, 'bg', 'gui')
-        let l:item_nc_ctermfg = synIDattr(l:item_nc_hl_id, 'bg', 'cterm')
-    endif
+    call s:Highlight('StFill', {
+                \ 'guibg':   l:cursor_line_nr.guibg,
+                \ 'guifg':   l:cursor_line_nr.guifg,
+                \ 'ctermbg': l:cursor_line_nr.ctermbg,
+                \ 'ctermfg': l:cursor_line_nr.ctermfg,
+                \ })
 
-    let l:sep_guifg   = l:item_guifg
-    let l:sep_ctermfg = l:item_ctermfg
+    call s:Highlight('StInfo', {
+                \ 'guibg':   l:line_nr.guifg,
+                \ 'guifg':   l:status_line.guibg,
+                \ 'ctermbg': l:line_nr.ctermfg,
+                \ 'ctermfg': l:status_line.ctermbg,
+                \ })
 
-    let l:tab_item_guifg   = l:item_guifg
-    let l:tab_item_ctermfg = l:item_ctermfg
-    let l:tab_item_nc_guifg   = l:item_nc_guifg
-    let l:tab_item_nc_ctermfg = l:item_nc_ctermfg
+    call s:Highlight('StItemNC', {
+                \ 'guibg':   l:line_nr.guifg,
+                \ 'guifg':   l:line_nr.guibg,
+                \ 'ctermbg': l:line_nr.ctermfg,
+                \ 'ctermfg': l:line_nr.ctermbg,
+                \ })
 
-    silent! execute 'hi StNone guibg=NONE guifg=NONE ctermbg=NONE ctermfg=NONE'
-
-    silent! execute 'hi StItem guibg=NONE guifg=' . l:item_guifg . ' gui=bold cterm=bold'
-    if strlen(l:item_ctermfg)
-        silent! execute 'hi StItem ctermbg=NONE ctermfg=' . l:item_ctermfg
-    endif
-    silent! execute 'hi StItemNC guibg=NONE guifg=' . l:item_nc_guifg . ' gui=NONE'
-    if strlen(l:item_nc_ctermfg)
-        silent! execute 'hi StItemNC ctermbg=NONE ctermfg=' . l:item_nc_ctermfg . ' cterm=NONE'
-    endif
-    silent! execute 'hi StSep guibg=NONE guifg=' . l:sep_guifg . ' gui=NONE'
-    if strlen(l:sep_ctermfg)
-        silent! execute 'hi StSep ctermbg=NONE ctermfg=' . l:sep_ctermfg . ' cterm=NONE'
-    endif
-    silent! execute 'hi StFill guibg=NONE guifg=NONE gui=NONE ctermbg=NONE ctermfg=NONE cterm=NONE'
-    silent! execute 'hi link StTabTitle StatusLine'
-    silent! execute 'hi link StTabCloseButton StTabTitle'
-    silent! execute 'hi StTabItem guibg=NONE guifg=' . l:tab_item_guifg . ' gui=bold cterm=bold'
-    if strlen(l:tab_item_ctermfg)
-        silent! execute 'hi StTabItem ctermbg=NONE ctermfg=' . l:tab_item_ctermfg
-    endif
-    silent! execute 'hi StTabItemNC guibg=NONE guifg=' . l:tab_item_nc_guifg . ' gui=NONE'
-    if strlen(l:tab_item_nc_ctermfg)
-        silent! execute 'hi StTabItemNC ctermbg=NONE ctermfg=' . l:tab_item_nc_ctermfg . ' cterm=NONE'
-    endif
-    silent! execute 'hi link StTabFill StFill'
-    silent! execute 'hi link StTabPlaceholder StTabItemNC'
+    silent! execute 'hi! link StTabItem StItem'
+    silent! execute 'hi! link StTabFill StFill'
+    silent! execute 'hi! link StTabTitle StInfo'
+    silent! execute 'hi! link StTabCloseButton StTabTitle'
 endfunction
 
 " Init statusline
