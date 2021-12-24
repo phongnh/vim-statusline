@@ -854,7 +854,7 @@ function! s:SetStatusColors() abort
 
     let l:normal_mode    = s:ExtractHlID('NormalMode')
     let l:line_nr        = s:ExtractHlID('LineNr')
-    let l:cursor_line    = s:ExtractHlID('CursorLineNr')
+    let l:cursor_line    = s:ExtractHlID('CursorLine')
     let l:cursor_line_nr = s:ExtractHlID('CursorLineNr')
     let l:status_line    = s:ExtractHlID('StatusLine')
     let l:status_line_nc = s:ExtractHlID('StatusLineNC')
@@ -890,10 +890,10 @@ function! s:SetStatusColors() abort
                 \ })
 
     call s:Highlight('StItemNC', {
-                \ 'guibg':   l:line_nr.guifg,
-                \ 'guifg':   l:line_nr.guibg,
-                \ 'ctermbg': l:line_nr.ctermfg,
-                \ 'ctermfg': l:line_nr.ctermbg,
+                \ 'guibg':   l:cursor_line.guibg,
+                \ 'guifg':   l:cursor_line.guifg,
+                \ 'ctermbg': l:cursor_line.ctermbg,
+                \ 'ctermfg': l:cursor_line.ctermfg,
                 \ })
 
     silent! execute 'hi! link StTabItem StItem'
