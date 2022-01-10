@@ -102,6 +102,8 @@ let s:filetype_modes = {
             \ 'startify':          'Startify',
             \ 'alpha':             'Alpha',
             \ 'tagbar':            'Tagbar',
+            \ 'vista':             'Vista',
+            \ 'vista_kind':        'Vista',
             \ 'vim-plug':          'Plugins',
             \ 'terminal':          'TERMINAL',
             \ 'help':              'HELP',
@@ -592,6 +594,10 @@ function! s:CustomMode() abort
             return extend(result, s:GetTagbarMode())
         endif
 
+        if ft ==# 'vista_kind' || ft ==# 'vista'
+            return extend(result, s:GetVistaMode())
+        endif
+
         if ft ==# 'terminal'
             return extend(result, {
                         \ 'lmode': expand('%'),
@@ -799,6 +805,15 @@ function! TagbarStatusFunc(current, sort, fname, flags, ...) abort
     let s:statusline.tagbar_flags = a:flags
 
     return StatusLine(winnr())
+endfunction
+
+" Vista Integration
+function! s:GetVistaMode() abort
+    let provider = get(get(g:, 'vista', {}), 'provider', '')
+    return {
+                \ 'lfill': provider,
+                \ 'type': 'vista',
+                \ }
 endfunction
 
 " ZoomWin Integration
