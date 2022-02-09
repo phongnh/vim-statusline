@@ -854,7 +854,7 @@ function! s:ExtractHlID(name) abort
 endfunction
 
 function! s:Highlight(group, attrs) abort
-    let l:cmd = printf('hi! %s', a:group)
+    let l:cmd = printf('highlight! %s', a:group)
     for [key, value] in items(a:attrs)
         if !empty(value)
             let l:cmd .= printf(' %s=%s', key, value)
@@ -866,56 +866,29 @@ endfunction
 " Set status colors
 
 function! s:SetStatusColors() abort
-    silent! execute 'hi! StNone guibg=NONE guifg=NONE ctermbg=NONE ctermfg=NONE'
+    highlight! StNone guibg=NONE guifg=NONE ctermbg=NONE ctermfg=NONE
 
-    let l:normal_mode    = s:ExtractHlID('NormalMode')
-    let l:line_nr        = s:ExtractHlID('LineNr')
-    let l:cursor_line    = s:ExtractHlID('CursorLine')
-    let l:cursor_line_nr = s:ExtractHlID('CursorLineNr')
-    let l:status_line    = s:ExtractHlID('StatusLine')
-    let l:status_line_nc = s:ExtractHlID('StatusLineNC')
-
-    call s:Highlight('StItem', {
-                \ 'guibg':   l:normal_mode.guibg,
-                \ 'guifg':   l:normal_mode.guifg,
-                \ 'ctermbg': l:normal_mode.ctermbg,
-                \ 'ctermfg': l:normal_mode.ctermfg,
-                \ 'gui':     'reverse,bold',
-                \ 'cterm':   'reverse,bold',
+    let l:st_item = s:ExtractHlID('StatusLine')
+    call extend(l:st_item, {
+                \ 'gui':   'bold',
+                \ 'cterm': 'bold',
                 \ })
 
-    call s:Highlight('StSep', {
-                \ 'guibg':   l:line_nr.guifg,
-                \ 'guifg':   l:status_line.guibg,
-                \ 'ctermbg': l:line_nr.ctermfg,
-                \ 'ctermfg': l:status_line.ctermbg,
-                \ })
+    call s:Highlight('StItem', l:st_item)
+    call s:Highlight('StStep', l:st_item)
+    call s:Highlight('StFill', l:st_item)
+    call s:Highlight('StInfo', l:st_item)
 
-    call s:Highlight('StFill', {
-                \ 'guibg':   l:cursor_line_nr.guibg,
-                \ 'guifg':   l:cursor_line_nr.guifg,
-                \ 'ctermbg': l:cursor_line_nr.ctermbg,
-                \ 'ctermfg': l:cursor_line_nr.ctermfg,
-                \ })
+    let l:st_item_nc = s:ExtractHlID('LineNr')
+    call s:Highlight('StItemNC', l:st_item_nc)
 
-    call s:Highlight('StInfo', {
-                \ 'guibg':   l:line_nr.guifg,
-                \ 'guifg':   l:status_line.guibg,
-                \ 'ctermbg': l:line_nr.ctermfg,
-                \ 'ctermfg': l:status_line.ctermbg,
-                \ })
+    call s:Highlight('StTabItem', l:st_item)
+    call s:Highlight('StTabTitle', l:st_item)
+    call s:Highlight('StTabFill', l:st_item)
+    call s:Highlight('StTabCloseButton', l:st_item)
 
-    call s:Highlight('StItemNC', {
-                \ 'guibg':   l:cursor_line.guibg,
-                \ 'guifg':   l:cursor_line.guifg,
-                \ 'ctermbg': l:cursor_line.ctermbg,
-                \ 'ctermfg': l:cursor_line.ctermfg,
-                \ })
-
-    silent! execute 'hi! link StTabItem StItem'
-    silent! execute 'hi! link StTabFill StFill'
-    silent! execute 'hi! link StTabTitle StInfo'
-    silent! execute 'hi! link StTabCloseButton StTabTitle'
+    let l:st_tab_item_nc = s:ExtractHlID('StatusLineNC')
+    call s:Highlight('StTabItemNC', l:st_tab_item_nc)
 endfunction
 
 " Init statusline
