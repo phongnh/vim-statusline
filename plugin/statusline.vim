@@ -95,6 +95,7 @@ let s:filetype_modes = {
             \ 'chadtree':          'CHADTree',
             \ 'NvimTree':          'NvimTree',
             \ 'neo-tree':          'NeoTree',
+            \ 'carbon.explorer':   'Carbon',
             \ 'fern':              'Fern',
             \ 'vaffle':            'Vaffle',
             \ 'dirvish':           'Dirvish',
@@ -583,6 +584,10 @@ function! s:CustomMode() abort
             return extend(result, s:GetNeoTreeMode(expand('%')))
         endif
 
+        if ft ==# 'carbon.explorer'
+            return extend(result, s:GetCarbonMode(expand('%')))
+        endif
+
         if ft ==# 'fern'
             return extend(result, s:GetFernMode(expand('%')))
         endif
@@ -700,6 +705,17 @@ function! s:GetNeoTreeMode(...) abort
 
     if exists('b:neo_tree_source')
         let result['lfill'] = b:neo_tree_source
+    endif
+
+    return result
+endfunction
+
+" Carbon Integration
+function! s:GetCarbonMode(...) abort
+    let result = { 'name': 'Carbon' }
+
+    if exists('b:carbon')
+        let result['lfill'] = fnamemodify(b:carbon['path'], ':p:~:.:h')
     endif
 
     return result
