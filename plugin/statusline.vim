@@ -93,6 +93,7 @@ let s:filetype_modes = {
             \ 'netrw':             'NetrwTree',
             \ 'nerdtree':          'NERDTree',
             \ 'chadtree':          'CHADTree',
+            \ 'LuaTree':           'LuaTree',
             \ 'NvimTree':          'NvimTree',
             \ 'neo-tree':          'NeoTree',
             \ 'carbon.explorer':   'Carbon',
