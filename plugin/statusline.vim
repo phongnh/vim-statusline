@@ -157,24 +157,8 @@ function! s:HiSection(section) abort
     return printf('%%#%s#', a:section)
 endfunction
 
-function! s:Strip(str) abort
-    if exists('*trim')
-        return trim(a:str)
-    else
-        return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
-    endif
-endfunction
-
 function! s:Wrap(text) abort
     return printf('%s %s %s', '«', a:text, '»')
-endfunction
-
-function! s:ShortenPath(filename) abort
-    if exists('*pathshorten')
-        return pathshorten(a:filename)
-    else
-        return substitute(a:filename, '\v\w\zs.{-}\ze(\\|/)', '', 'g')
-    endif
 endfunction
 
 function! s:RemoveEmptyElement(list) abort
@@ -211,14 +195,6 @@ function! s:BuildRightFill(parts) abort
     return s:BuildFill(a:parts, g:statusline_symbols.right_fill_sep)
 endfunction
 
-function! s:GetCurrentDir() abort
-    let dir = fnamemodify(getcwd(), ':~:.')
-    if empty(dir)
-        let dir = getcwd()
-    endif
-    return dir
-endfunction
-
 function! s:FormatFileName(fname, winwidth, max_width) abort
     let fname = a:fname
 
@@ -227,7 +203,7 @@ function! s:FormatFileName(fname, winwidth, max_width) abort
     endif
 
     if strlen(fname) > a:winwidth && (fname[0] =~ '\~\|/') && g:statusline_shorten_path
-        let fname = s:ShortenPath(fname)
+        let fname = statusline#ShortenPath(fname)
     endif
 
     let max_width = min([a:winwidth, a:max_width])
@@ -393,7 +369,7 @@ function! s:CustomMode() abort
                     \ }
 
         if fname ==# 'ControlP'
-            return extend(result, s:GetCtrlPMode())
+            return extend(result, statusline#ctrlp#Mode())
         endif
 
         if fname ==# '__Tagbar__'
@@ -471,7 +447,7 @@ function! s:CustomMode() abort
             if getwininfo(win_getid())[0]['loclist']
                 let result['name'] = 'Location'
             endif
-            let qf_title = s:Strip(get(w:, 'quickfix_title', ''))
+            let qf_title = statusline#Trim(get(w:, 'quickfix_title', ''))
             return extend(result, {
                         \ 'lmode': qf_title,
                         \ 'lmode_inactive': qf_title,
@@ -482,66 +458,6 @@ function! s:CustomMode() abort
     endif
 
     return {}
-endfunction
-
-" CtrlP Integration
-let g:ctrlp_status_func = {
-            \ 'main': 'CtrlPMainStatusLine',
-            \ 'prog': 'CtrlPProgressStatusLine',
-            \ }
-
-function! s:GetCtrlPMode() abort
-    let result = {
-                \ 'name': s:filename_modes['ControlP'],
-                \ 'rmode': s:statusline.ctrlp_dir,
-                \ 'type': 'ctrlp',
-                \ }
-
-    if s:statusline.ctrlp_main
-        let lfill = s:BuildFill([
-                    \ s:statusline.ctrlp_prev,
-                    \ s:Wrap(s:statusline.ctrlp_item),
-                    \ s:statusline.ctrlp_next,
-                    \ ])
-
-        let rfill = s:BuildRightFill([
-                    \ s:statusline.ctrlp_focus,
-                    \ '[' . s:statusline.ctrlp_byfname . ']',
-                    \ ])
-
-        call extend(result, {
-                    \ 'lfill': lfill,
-                    \ 'rfill': rfill,
-                    \ })
-    else
-        call extend(result, {
-                    \ 'lfill': s:statusline.ctrlp_len,
-                    \ })
-    endif
-
-    return result
-endfunction
-
-function! CtrlPMainStatusLine(focus, byfname, regex, prev, item, next, marked) abort
-    let s:statusline.ctrlp_main    = 1
-    let s:statusline.ctrlp_focus   = a:focus
-    let s:statusline.ctrlp_byfname = a:byfname
-    let s:statusline.ctrlp_regex   = a:regex
-    let s:statusline.ctrlp_prev    = a:prev
-    let s:statusline.ctrlp_item    = a:item
-    let s:statusline.ctrlp_next    = a:next
-    let s:statusline.ctrlp_marked  = a:marked
-    let s:statusline.ctrlp_dir     = s:GetCurrentDir()
-
-    return StatusLine(winnr())
-endfunction
-
-function! CtrlPProgressStatusLine(len) abort
-    let s:statusline.ctrlp_main = 0
-    let s:statusline.ctrlp_len  = a:len
-    let s:statusline.ctrlp_dir  = s:GetCurrentDir()
-
-    return StatusLine(winnr())
 endfunction
 
 " NeoTree Integration
@@ -780,6 +696,7 @@ command! RefreshStatusLine :call s:RefreshStatusLine()
 
 augroup VimStatusLine
     autocmd!
+    autocmd VimEnter * call statusline#Init()
     autocmd WinEnter,BufEnter,SessionLoadPost,FileChangedShellPost * call <SID>RefreshStatusLine()
     if !has('patch-8.1.1715')
         autocmd FileType qf call <SID>RefreshStatusLine()
@@ -827,7 +744,7 @@ if exists('+tabline')
 
             if strlen(bufname) > 30
                 if bufname[0] =~ '\~\|/' && g:statusline_shorten_path
-                    let bufname = s:ShortenPath(bufname)
+                    let bufname = statusline#ShortenPath(bufname)
                 else
                     let bufname = fnamemodify(bufname, ':t')
                 endif

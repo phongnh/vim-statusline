@@ -61,3 +61,11 @@ function! statusline#FileName() abort
     let fname = expand('%')
     return strlen(fname) ? fnamemodify(fname, ':~:.') : '[No Name]'
 endfunction
+
+function! statusline#Init() abort
+    " CtrlP Integration
+    let g:ctrlp_status_func = {
+                \ 'main': 'statusline#ctrlp#MainStatus',
+                \ 'prog': 'statusline#ctrlp#ProgressStatus',
+                \ }
+endfunction
