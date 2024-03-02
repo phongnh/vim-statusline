@@ -205,12 +205,12 @@ function! statusline#Setup() abort
     endif
 
     call extend(g:statusline_symbols, {
-                \ 'left_mode_sep':  ' ' . g:statusline_symbols.left_alt . ' ',
-                \ 'right_mode_sep': ' ' . g:statusline_symbols.right_alt . ' ',
-                \ 'left_sep':       ' ' . g:statusline_symbols.left . ' ',
-                \ 'left_alt_sep':   ' ' . g:statusline_symbols.left_alt . ' ',
-                \ 'right_sep':      ' ' . g:statusline_symbols.right . ' ',
-                \ 'right_alt_sep':  ' ' . g:statusline_symbols.right_alt . ' ',
+                \ 'left_mode_sep':  g:statusline_symbols.left_alt,
+                \ 'right_mode_sep': g:statusline_symbols.right_alt,
+                \ 'left_sep':       g:statusline_symbols.left,
+                \ 'left_alt_sep':   g:statusline_symbols.left_alt,
+                \ 'right_sep':      g:statusline_symbols.right,
+                \ 'right_alt_sep':  g:statusline_symbols.right_alt,
                 \ })
 endfunction
 
