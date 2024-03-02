@@ -210,41 +210,13 @@ function! s:FormatFileName(fname, winwidth, max_width) abort
     return fname
 endfunction
 
-function! s:ModifiedStatus() abort
-    if &modified
-        if !&modifiable
-            return '[+-]'
-        else
-            return '[+]'
-        endif
-    elseif !&modifiable
-        return '[-]'
-    endif
-
-    return ''
-endfunction
-
-function! s:ReadonlyStatus() abort
-    return &readonly ? ' ' . g:statusline_symbols.readonly . ' ' : ''
-endfunction
-
 function! s:FileNameStatus(...) abort
     let winwidth = get(a:, 1, 100)
-    return s:FormatFileName(statusline#FileName(), winwidth, 50) . s:ModifiedStatus() . s:ReadonlyStatus()
+    return statusline#parts#Readonly() . s:FormatFileName(statusline#FileName(), winwidth, 50) . statusline#parts#Modified()
 endfunction
 
 function! s:InactiveFileNameStatus(...) abort
-    return statusline#FileName() . s:ModifiedStatus() . s:ReadonlyStatus()
-endfunction
-
-function! s:IndentationStatus(...) abort
-    let l:shiftwidth = exists('*shiftwidth') ? shiftwidth() : &shiftwidth
-    let compact = get(a:, 1, 0)
-    if compact
-        return printf(&expandtab ? 'SPC: %d' : 'TAB: %d', l:shiftwidth)
-    else
-        return printf(&expandtab ? 'Spaces: %d' : 'Tab Size: %d', l:shiftwidth)
-    endif
+    return statusline#parts#Readonly() . statusline#FileName() . statusline#parts#Modified()
 endfunction
 
 function! s:BuildGroup(exp) abort
