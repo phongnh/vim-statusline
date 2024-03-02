@@ -70,12 +70,12 @@ function! statusline#Wrap(text) abort
 endfunction
 
 function! statusline#ModeConcatenate(parts, ...) abort
-    let separator = get(a:, 1, 0) ? g:crystalline_symbols.right_mode_sep : g:crystalline_symbols.left_mode_sep
+    let separator = get(a:, 1, 0) ? g:statusline_symbols.right_mode_sep : g:statusline_symbols.left_mode_sep
     return join(filter(copy(a:parts), 'v:val !=# ""'), ' ' . separator . ' ')
 endfunction
 
 function! statusline#Concatenate(parts, ...) abort
-    let separator = get(a:, 1, 0) ? g:crystalline_symbols.right_fill_sep : g:crystalline_symbols.left_fill_sep
+    let separator = get(a:, 1, 0) ? g:statusline_symbols.right_fill_sep : g:statusline_symbols.left_fill_sep
     return join(filter(copy(a:parts), 'v:val !=# ""'), ' ' . separator . ' ')
 endfunction
 
@@ -86,6 +86,12 @@ endfunction
 function! statusline#FileName() abort
     let fname = expand('%')
     return strlen(fname) ? fnamemodify(fname, ':~:.') : '[No Name]'
+endfunction
+
+function! statusline#Refresh() abort
+    for nr in range(1, winnr('$'))
+        call setwinvar(nr, '&statusline', '%!StatusLine(' . nr . ')')
+    endfor
 endfunction
 
 function! statusline#Init() abort
