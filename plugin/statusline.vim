@@ -12,7 +12,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Settings
-let g:statusline_powerline             = get(g:, 'statusline_powerline', 0)
+let g:statusline_powerline_fonts       = get(g:, 'statusline_powerline_fonts', 0)
 let g:statusline_mode                  = get(g:, 'statusline_mode', 'default')
 let g:statusline_shorten_path          = get(g:, 'statusline_shorten_path', 0)
 let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
@@ -24,6 +24,13 @@ if g:statusline_mode ==? 'minimal'
     let g:statusline_show_git_branch = 0
     let g:statusline_show_devicons   = 0
 endif
+
+" Window width
+let g:statusline_winwidth_config = extend({
+            \ 'compact': 60,
+            \ 'small':   80,
+            \ 'normal':  120,
+            \ }, get(g:, 'statusline_winwidth_config', {}))
 
 " Disable NERDTree statusline
 let g:NERDTreeStatusline = -1
@@ -37,7 +44,7 @@ let s:normal_window_width = 120
 let s:displayable_tab_count = 5
 
 " Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
-let s:symbols = {
+let g:statusline_symbols = {
             \ 'tabs':           'TABS',
             \ 'clipboard':      '🅒 ',
             \ 'paste':          '🅟 ',
@@ -53,7 +60,7 @@ let s:symbols = {
 
 if g:statusline_powerline
     " Powerline Symbols
-    call extend(s:symbols, {
+    call extend(g:statusline_symbols, {
                 \ 'left':      "\ue0b0",
                 \ 'right':     "\ue0b2",
                 \ 'left_alt':  "\ue0b1",
@@ -61,13 +68,13 @@ if g:statusline_powerline
                 \ })
 endif
 
-call extend(s:symbols, {
-            \ 'left_mode_sep':  ' ' . s:symbols.left_alt . ' ',
-            \ 'right_mode_sep': ' ' . s:symbols.right_alt . ' ',
-            \ 'left_sep':       ' ' . s:symbols.left . ' ',
-            \ 'left_alt_sep':   ' ' . s:symbols.left_alt . ' ',
-            \ 'right_sep':      ' ' . s:symbols.right . ' ',
-            \ 'right_alt_sep':  ' ' . s:symbols.right_alt . ' ',
+call extend(g:statusline_symbols, {
+            \ 'left_mode_sep':  ' ' . g:statusline_symbols.left_alt . ' ',
+            \ 'right_mode_sep': ' ' . g:statusline_symbols.right_alt . ' ',
+            \ 'left_sep':       ' ' . g:statusline_symbols.left . ' ',
+            \ 'left_alt_sep':   ' ' . g:statusline_symbols.left_alt . ' ',
+            \ 'right_sep':      ' ' . g:statusline_symbols.right . ' ',
+            \ 'right_alt_sep':  ' ' . g:statusline_symbols.right_alt . ' ',
             \ })
 
 " Alternate status dictionaries
@@ -151,7 +158,7 @@ endif
 
 " Show Vim Logo in Tabline
 if g:statusline_show_vim_logo && s:statusline_show_devicons
-    let s:symbols.tabs = "\ue7c5" . ' '
+    let g:statusline_symbols.tabs = "\ue7c5 "
 endif
 
 function! s:HiSection(section) abort
@@ -193,23 +200,23 @@ function! s:ParseList(list, sep) abort
 endfunction
 
 function! s:BuildMode(parts, ...) abort
-    let l:sep = get(a:, 1, s:symbols.left_mode_sep)
+    let l:sep = get(a:, 1, g:statusline_symbols.left_mode_sep)
     let l:parts = s:ParseList(a:parts, l:sep)
     return join(l:parts, l:sep)
 endfunction
 
 function! s:BuildRightMode(parts) abort
-    return s:BuildMode(a:parts, s:symbols.right_mode_sep)
+    return s:BuildMode(a:parts, g:statusline_symbols.right_mode_sep)
 endfunction
 
 function! s:BuildFill(parts, ...) abort
-    let l:sep = get(a:, 1, s:symbols.left_fill_sep)
+    let l:sep = get(a:, 1, g:statusline_symbols.left_fill_sep)
     let l:parts = s:ParseList(a:parts, l:sep)
     return join(l:parts, l:sep)
 endfunction
 
 function! s:BuildRightFill(parts) abort
-    return s:BuildFill(a:parts, s:symbols.right_fill_sep)
+    return s:BuildFill(a:parts, g:statusline_symbols.right_fill_sep)
 endfunction
 
 function! s:GetCurrentDir() abort
@@ -218,20 +225,6 @@ function! s:GetCurrentDir() abort
         let dir = getcwd()
     endif
     return dir
-endfunction
-
-function! s:GetBufferType() abort
-    return strlen(&filetype) ? &filetype : &buftype
-endfunction
-
-function! s:GetFileName() abort
-    let fname = expand('%:~:.')
-
-    if empty(fname)
-        return '[No Name]'
-    endif
-
-    return fname
 endfunction
 
 function! s:FormatFileName(fname, winwidth, max_width) abort
@@ -269,7 +262,7 @@ function! s:ModifiedStatus() abort
 endfunction
 
 function! s:ReadonlyStatus() abort
-    return &readonly ? ' ' . s:symbols.readonly . ' ' : ''
+    return &readonly ? ' ' . g:statusline_symbols.readonly . ' ' : ''
 endfunction
 
 function! s:GetGitBranch() abort
@@ -332,7 +325,7 @@ function! s:FormatBranch(branch, winwidth) abort
     let branch = s:ShortenBranch(a:branch, 30)
 
     if strlen(branch) > 30
-        let branch = strcharpart(branch, 0, 29) . s:symbols.ellipsis
+        let branch = strcharpart(branch, 0, 29) . g:statusline_symbols.ellipsis
     endif
 
     return branch
@@ -340,11 +333,11 @@ endfunction
 
 function! s:FileNameStatus(...) abort
     let winwidth = get(a:, 1, 100)
-    return s:FormatFileName(s:GetFileName(), winwidth, 50) . s:ModifiedStatus() . s:ReadonlyStatus()
+    return s:FormatFileName(statusline#FileName(), winwidth, 50) . s:ModifiedStatus() . s:ReadonlyStatus()
 endfunction
 
 function! s:InactiveFileNameStatus(...) abort
-    return s:GetFileName() . s:ModifiedStatus() . s:ReadonlyStatus()
+    return statusline#FileName() . s:ModifiedStatus() . s:ReadonlyStatus()
 endfunction
 
 function! s:IndentationStatus(...) abort
@@ -373,7 +366,7 @@ endfunction
 function! s:FileInfoStatus(...) abort
     let parts = [
                 \ s:FileEncodingAndFormatStatus(),
-                \ s:GetBufferType(),
+                \ statusline#BufferType(),
                 \ ]
 
     let compact = get(a:, 1, 0)
@@ -402,12 +395,12 @@ function! s:IsClipboardEnabled() abort
 endfunction
 
 function! s:ClipboardStatus() abort
-    return s:IsClipboardEnabled() ? s:symbols.clipboard : ''
+    return s:IsClipboardEnabled() ? g:statusline_symbols.clipboard : ''
 endfunction
 
 function! s:PasteStatus() abort
     if &paste
-        return s:symbols.paste
+        return g:statusline_symbols.paste
     endif
     return ''
 endfunction
@@ -574,7 +567,7 @@ function! s:CustomMode() abort
         endif
     endif
 
-    let ft = s:GetBufferType()
+    let ft = statusline#BufferType()
     if has_key(s:filetype_modes, ft)
         let result = {
                     \ 'name': s:filetype_modes[ft],
@@ -954,7 +947,7 @@ let g:qf_disable_statusline = 1
 " Init tabline
 if exists('+tabline')
     function! s:TabPlaceholder(tab) abort
-        return s:HiSection('StTabPlaceholder') . printf('%%%d  %s %%*', a:tab, s:symbols.ellipsis)
+        return s:HiSection('StTabPlaceholder') . printf('%%%d  %s %%*', a:tab, g:statusline_symbols.ellipsis)
     endfunction
 
     function! s:TabLabel(tabnr) abort
@@ -1000,7 +993,7 @@ if exists('+tabline')
     endfunction
 
     function! Tabline() abort
-        let stl = s:HiSection('StTabTitle') . ' ' . s:symbols.tabs . ' ' . '%*'
+        let stl = s:HiSection('StTabTitle') . ' ' . g:statusline_symbols.tabs . ' ' . '%*'
 
         let tab_count = tabpagenr('$')
         let max_tab_count = s:displayable_tab_count
