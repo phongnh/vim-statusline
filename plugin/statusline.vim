@@ -58,7 +58,7 @@ let g:statusline_symbols = {
             \ 'right_fill_sep': ' ',
             \ }
 
-if g:statusline_powerline
+if g:statusline_powerline_fonts
     " Powerline Symbols
     call extend(g:statusline_symbols, {
                 \ 'left':      "\ue0b0",
