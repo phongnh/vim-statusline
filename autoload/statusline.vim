@@ -68,4 +68,21 @@ function! statusline#Init() abort
                 \ 'main': 'statusline#ctrlp#MainStatus',
                 \ 'prog': 'statusline#ctrlp#ProgressStatus',
                 \ }
+
+    " Tagbar Integration
+    let g:tagbar_status_func = 'TagbarStatusFunc'
+
+    " ZoomWin Integration
+    let g:statusline_zoomwin_funcref = []
+
+    if exists('g:ZoomWin_funcref')
+        if type(g:ZoomWin_funcref) == v:t_func
+            let g:statusline_zoomwin_funcref = [g:ZoomWin_funcref]
+        elseif type(g:ZoomWin_funcref) == v:t_func
+            let g:statusline_zoomwin_funcref = g:ZoomWin_funcref
+        endif
+        let g:statusline_zoomwin_funcref = uniq(copy(g:statusline_zoomwin_funcref))
+    endif
+
+    let g:ZoomWin_funcref = function('statusline#zoomwin#Status')
 endfunction

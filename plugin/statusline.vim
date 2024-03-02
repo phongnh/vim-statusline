@@ -200,7 +200,7 @@ endfunction
 
 function! StatusLineActiveMode(...) abort
     " custom status
-    let l:mode = s:CustomMode()
+    let l:mode = statusline#parts#Integration()
     if len(l:mode)
         return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode', '') ])
     endif
@@ -214,7 +214,7 @@ function! StatusLineActiveMode(...) abort
 endfunction
 
 function! StatusLineLeftFill(...) abort
-    let l:mode = s:CustomMode()
+    let l:mode = statusline#parts#Integration()
     if len(l:mode)
         return get(l:mode, 'lfill', '')
     endif
@@ -230,7 +230,7 @@ function! StatusLineLeftFill(...) abort
 endfunction
 
 function! StatusLineRightMode(...) abort
-    let l:mode = s:CustomMode()
+    let l:mode = statusline#parts#Integration()
     if len(l:mode)
         return get(l:mode, 'rmode', '')
     endif
@@ -243,7 +243,7 @@ function! StatusLineRightMode(...) abort
 endfunction
 
 function! StatusLineRightFill(...) abort
-    let l:mode = s:CustomMode()
+    let l:mode = statusline#parts#Integration()
     if len(l:mode)
         return get(l:mode, 'rfill', '')
     endif
@@ -252,7 +252,7 @@ endfunction
 
 function! StatusLineInactiveMode(...) abort
     " show only custom mode in inactive buffer
-    let l:mode = s:CustomMode()
+    let l:mode = statusline#parts#Integration()
     if len(l:mode)
         return s:BuildMode([ l:mode['name'], get(l:mode, 'lmode_inactive', '') ])
     endif
@@ -292,260 +292,6 @@ function! StatusLine(winnum) abort
                     \ s:BuildGroup(printf('StatusLineInactiveMode(%d)', a:winnum))
     endif
 endfunction
-
-" Plugin Integration
-" Save plugin states
-let s:statusline = {}
-
-function! s:CustomMode() abort
-    let fname = expand('%:t')
-
-    if has_key(s:filename_modes, fname)
-        let result = {
-                    \ 'name': s:filename_modes[fname],
-                    \ 'type': 'name',
-                    \ }
-
-        if fname ==# 'ControlP'
-            return extend(result, statusline#ctrlp#Mode())
-        endif
-
-        if fname ==# '__Tagbar__'
-            return extend(result, s:GetTagbarMode())
-        endif
-
-        if fname ==# '__CtrlSF__'
-            return extend(result, statusline#ctrlsf#Mode())
-        endif
-
-        if fname ==# '__CtrlSFPreview__'
-            return extend(result, statusline#ctrlsf#PreviewMode())
-        endif
-
-        return result
-    endif
-
-    if fname =~? '^NrrwRgn'
-        let nrrw_rgn_mode = s:GetNrrwRgnMode()
-        if len(nrrw_rgn_mode)
-            return nrrw_rgn_mode
-        endif
-    endif
-
-    let ft = statusline#BufferType()
-    if has_key(s:filetype_modes, ft)
-        let result = {
-                    \ 'name': s:filetype_modes[ft],
-                    \ 'type': 'filetype',
-                    \ }
-
-        if ft ==# 'neo-tree'
-            return extend(result, s:GetNeoTreeMode(expand('%')))
-        endif
-
-        if ft ==# 'carbon.explorer'
-            return extend(result, s:GetCarbonMode(expand('%')))
-        endif
-
-        if ft ==# 'fern'
-            return extend(result, s:GetFernMode(expand('%')))
-        endif
-
-        if ft ==# 'vaffle'
-            return extend(result, s:GetVaffleMode(expand('%')))
-        endif
-
-        if ft ==# 'dirvish'
-            return extend(result, statusline#dirvish#Mode(expand('%')))
-        endif
-
-        if ft ==# 'tagbar'
-            return extend(result, s:GetTagbarMode())
-        endif
-
-        if ft ==# 'vista_kind' || ft ==# 'vista'
-            return extend(result, s:GetVistaMode())
-        endif
-
-        if ft ==# 'terminal'
-            return extend(result, {
-                        \ 'lmode': expand('%'),
-                        \ })
-        endif
-
-        if ft ==# 'help'
-            let fname = expand('%:p')
-            return extend(result, {
-                        \ 'lmode': fname,
-                        \ 'lmode_inactive': fname,
-                        \ })
-        endif
-
-        if ft ==# 'qf'
-            if getwininfo(win_getid())[0]['loclist']
-                let result['name'] = 'Location'
-            endif
-            let qf_title = statusline#Trim(get(w:, 'quickfix_title', ''))
-            return extend(result, {
-                        \ 'lmode': qf_title,
-                        \ 'lmode_inactive': qf_title,
-                        \ })
-        endif
-
-        return result
-    endif
-
-    return {}
-endfunction
-
-" NeoTree Integration
-function! s:GetNeoTreeMode(...) abort
-    let result = { 'name': 'NeoTree' }
-
-    if exists('b:neo_tree_source')
-        let result['lfill'] = b:neo_tree_source
-    endif
-
-    return result
-endfunction
-
-" Carbon Integration
-function! s:GetCarbonMode(...) abort
-    let result = { 'name': 'Carbon' }
-
-    if exists('b:carbon')
-        let result['lfill'] = fnamemodify(b:carbon['path'], ':p:~:.:h')
-    endif
-
-    return result
-endfunction
-
-" Fern Integration
-function! s:GetFernMode(...) abort
-    let result = {}
-
-    let fern_name = get(a:, 1, expand('%'))
-    let pattern = '^fern://\(.\+\)/file://\(.\+\)\$'
-    let data = matchlist(fern_name, pattern)
-
-    if len(data)
-        let fern_mode = get(data, 1, '')
-        if match(fern_mode, 'drawer') > -1
-            let result['name'] = 'Drawer'
-        endif
-
-        let fern_folder = get(data, 2, '')
-        let fern_folder = substitute(fern_folder, ';\?\(#.\+\)\?\$\?$', '', '')
-        let fern_folder = fnamemodify(fern_folder, ':p:~:.:h')
-
-        let result['lfill'] = fern_folder
-    endif
-
-    return result
-endfunction
-
-" Vaffle Integration
-function! s:GetVaffleMode(...) abort
-    let result = {}
-
-    let vaffle_name = get(a:, 1, expand('%'))
-    let pattern = '^vaffle://\(\d\+\)/\(.\+\)$'
-    let data = matchlist(vaffle_name, pattern)
-
-    let vaffle_folder = get(data, 2, '')
-    if strlen(vaffle_folder)
-        let result['lfill'] = fnamemodify(vaffle_folder, ':p:~:h')
-    endif
-
-    return result
-endfunction
-
-" NrrwRgn Integration
-function! s:GetNrrwRgnMode(...) abort
-    let result = {}
-
-    if exists(':WidenRegion') == 2
-        let result['type'] = 'nrrwrgn'
-
-        if exists('b:nrrw_instn')
-            let result['name'] = printf('%s#%d', 'NrrwRgn', b:nrrw_instn)
-        else
-            let l:mode = substitute(bufname('%'), '^Nrrwrgn_\zs.*\ze_\d\+$', submatch(0), '')
-            let l:mode = substitute(l:mode, '__', '#', '')
-            let result['name'] = l:mode
-        endif
-
-        let dict = exists('*nrrwrgn#NrrwRgnStatus()') ?  nrrwrgn#NrrwRgnStatus() : {}
-
-        if len(dict)
-            let result['lmode'] = fnamemodify(dict.fullname, ':~:.')
-            let result['lmode_inactive'] = result['lmode']
-        elseif get(b:, 'orig_buf', 0)
-            let result['lmode'] = bufname(b:orig_buf)
-            let result['lmode_inactive'] = result['lmode']
-        endif
-    endif
-
-    return result
-endfunction
-
-" Tagbar Integration
-let g:tagbar_status_func = 'TagbarStatusFunc'
-
-function! s:GetTagbarMode() abort
-    if empty(s:statusline.tagbar_flags)
-        let lfill = ''
-    else
-        let lfill = printf('[%s]', join(s:statusline.tagbar_flags, ''))
-    endif
-
-    return {
-                \ 'name': s:statusline.tagbar_sort,
-                \ 'lmode': s:statusline.tagbar_fname,
-                \ 'lfill': lfill,
-                \ 'type': 'tagbar',
-                \ }
-endfunction
-
-function! TagbarStatusFunc(current, sort, fname, flags, ...) abort
-    let s:statusline.tagbar_sort  = a:sort
-    let s:statusline.tagbar_fname = a:fname
-    let s:statusline.tagbar_flags = a:flags
-
-    return StatusLine(winnr())
-endfunction
-
-" Vista Integration
-function! s:GetVistaMode() abort
-    let provider = get(get(g:, 'vista', {}), 'provider', '')
-    return {
-                \ 'lfill': provider,
-                \ 'type': 'vista',
-                \ }
-endfunction
-
-" ZoomWin Integration
-let s:ZoomWin_funcref = []
-
-if exists('g:ZoomWin_funcref')
-    if type(g:ZoomWin_funcref) == 2
-        let s:ZoomWin_funcref = [g:ZoomWin_funcref]
-    elseif type(g:ZoomWin_funcref) == 3
-        let s:ZoomWin_funcref = g:ZoomWin_funcref
-    endif
-endif
-let s:ZoomWin_funcref = uniq(copy(s:ZoomWin_funcref))
-
-function! ZoomWinStatusLine(zoomstate) abort
-    for F in s:ZoomWin_funcref
-        if type(F) == 2 && F != function('ZoomWinStatusLine')
-            call F(a:zoomstate)
-        endif
-    endfor
-    call s:RefreshStatusLine()
-endfunction
-
-let g:ZoomWin_funcref= function('ZoomWinStatusLine')
 
 function! s:ExtractHlID(name) abort
     let l:hl_id   = hlID(a:name)
