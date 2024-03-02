@@ -13,71 +13,6 @@ set cpo&vim
 
 call statusline#Setup()
 
-function! StatusLineActiveMode(...) abort
-    " custom status
-    let l:mode = statusline#parts#Integration()
-    if len(l:mode)
-        return statusline#ModeConcatenate([ l:mode['name'], get(l:mode, 'lmode', '') ])
-    endif
-
-    let l:winwidth = winwidth(get(a:, 1, 0))
-
-    return statusline#ModeConcatenate([
-                \ g:statusline_show_git_branch ? statusline#git#Branch() : '',
-                \ statusline#parts#FileName(),
-                \ ])
-endfunction
-
-function! StatusLineLeftFill(...) abort
-    let l:mode = statusline#parts#Integration()
-    if len(l:mode)
-        return get(l:mode, 'lfill', '')
-    endif
-
-    let l:winwidth = winwidth(get(a:, 1, 0))
-
-    if l:winwidth >= g:statusline_winwidth_config.small
-    endif
-
-    return statusline#ModeConcatenate([
-                \ statusline#parts#Clipboard(),
-                \ statusline#parts#Paste(),
-                \ statusline#parts#Spell(),
-                \ ])
-endfunction
-
-function! StatusLineRightMode(...) abort
-    let l:mode = statusline#parts#Integration()
-    if len(l:mode)
-        return get(l:mode, 'rmode', '')
-    endif
-
-    let compact = g:statusline_show_git_branch && statusline#IsCompact(get(a:, 1, 0))
-    return statusline#ModeConcatenate([
-                \ statusline#parts#Indentation(compact),
-                \ statusline#parts#FileType(),
-                \ ], 1)
-endfunction
-
-function! StatusLineRightFill(...) abort
-    let l:mode = statusline#parts#Integration()
-    if len(l:mode)
-        return get(l:mode, 'rfill', '')
-    endif
-    return ''
-endfunction
-
-function! StatusLineInactiveMode(...) abort
-    " show only custom mode in inactive buffer
-    let l:mode = statusline#parts#Integration()
-    if len(l:mode)
-        return statusline#ModeConcatenate([ l:mode['name'], get(l:mode, 'lmode_inactive', '') ])
-    endif
-
-    " « plugin/statusline.vim[+] »
-    return statusline#Wrap(statusline#parts#InactiveFileName())
-endfunction
-
 function! StatusLine(winnum) abort
     " Goyo Integration
     if exists('#goyo')
@@ -92,17 +27,19 @@ function! StatusLine(winnum) abort
         return join([
                     \ statusline#Hi('StatusLine'),
                     \ '%<',
-                    \ statusline#Group(printf('StatusLineActiveMode(%d)', a:winnum)),
-                    \ statusline#Group(printf('StatusLineLeftFill(%d)', a:winnum)),
+                    \ statusline#Group(printf('statusline#sections#Mode(%d)', a:winnum)),
+                    \ statusline#Group(printf('statusline#sections#Plugin(%d)', a:winnum)),
+                    \ statusline#Group(printf('statusline#sections#FileName(%d)', a:winnum)),
                     \ '%=',
-                    \ statusline#Group(printf('StatusLineRightFill(%d)', a:winnum)),
                     \ '%<',
-                    \ statusline#Group(printf('StatusLineRightMode(%d)', a:winnum)),
+                    \ statusline#Group(printf('statusline#sections#Info(%d)', a:winnum)),
+                    \ statusline#Group(printf('statusline#sections#Settings(%d)', a:winnum)),
+                    \ statusline#Group(printf('statusline#sections#Buffer(%d)', a:winnum)),
                     \ ], '')
     else
         return statusline#Hi('StatusLineNC') .
                     \ '%<' .
-                    \ statusline#Group(printf('StatusLineInactiveMode(%d)', a:winnum))
+                    \ statusline#Group(printf('statusline#sections#InactiveMode(%d)', a:winnum))
     endif
 endfunction
 

@@ -1,8 +1,8 @@
 function! statusline#parts#Mode() abort
     if statusline#IsCompact()
-        return get(g:statusline_short_mode_map, mode(), '')
+        return get(g:statusline_short_mode_labels, mode(), '')
     else
-        return statusline#mode()
+        return get(g:statusline_mode_labels, mode(), '')
     endif
 endfunction
 

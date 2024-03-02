@@ -109,6 +109,41 @@ function! statusline#Setup() abort
         let g:statusline_show_devicons   = 0
     endif
 
+    " Improved Model Labels
+    let g:statusline_mode_labels = {
+                \ 'n':  'NORMAL',
+                \ 'c':  'COMMAND',
+                \ 'r':  'NORMAL',
+                \ '!':  'NORMAL',
+                \ 'i':  'INSERT',
+                \ 't':  'TERMINAL',
+                \ 'v':  'VISUAL',
+                \ 'V':  'V-LINE',
+                \ '': 'V-BLOCK',
+                \ 's':  'SELECT',
+                \ 'S':  'S-LINE',
+                \ '': 'S-BLOCK',
+                \ 'R':  'REPLACE',
+                \ '':   '',
+                \ }
+
+    let g:statusline_short_mode_labels = {
+                \ 'n':  'N',
+                \ 'c':  'C',
+                \ 'r':  'N',
+                \ '!':  'N',
+                \ 'i':  'I',
+                \ 't':  'T',
+                \ 'v':  'V',
+                \ 'V':  'L',
+                \ '': 'B',
+                \ 's':  'S',
+                \ 'S':  'S-L',
+                \ '': 'S-B',
+                \ 'R':  'R ',
+                \ '':   '',
+                \ }
+
     " Window width
     let g:statusline_winwidth_config = extend({
                 \ 'compact': 60,
