@@ -107,8 +107,6 @@ function! StatusLine(winnum) abort
 endfunction
 
 " Init statusline
-command! RefreshStatusLine call statusline#Refresh()
-
 augroup VimStatusLine
     autocmd!
     autocmd VimEnter * call statusline#Init()

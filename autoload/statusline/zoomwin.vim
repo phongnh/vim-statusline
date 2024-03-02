@@ -5,5 +5,5 @@ function! statusline#zoomwin#Status(zoomstate) abort
             call F(a:zoomstate)
         endif
     endfor
-    :RefreshStatusLine
+    call statusline#Refresh()
 endfunction
