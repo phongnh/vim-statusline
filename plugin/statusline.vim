@@ -356,7 +356,7 @@ function! s:CustomMode() abort
         endif
 
         if ft ==# 'dirvish'
-            return extend(result, s:GetDirvishMode(expand('%')))
+            return extend(result, statusline#dirvish#Mode(expand('%')))
         endif
 
         if ft ==# 'tagbar'
@@ -458,10 +458,6 @@ function! s:GetVaffleMode(...) abort
     endif
 
     return result
-endfunction
-
-function! s:GetDirvishMode(...) abort
-    return { 'lfill': fnamemodify(get(a:, 1, expand('%')), ':p:h') }
 endfunction
 
 " NrrwRgn Integration
