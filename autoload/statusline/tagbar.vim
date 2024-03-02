@@ -6,7 +6,7 @@ function! statusline#tagbar#Status(current, sort, fname, flags, ...) abort
     let s:statusline_tagbar.fname = a:fname
     let s:statusline_tagbar.flags = a:flags
 
-    return StatusLine(winnr())
+    return StatusLine(a:current ? winnr() : 0)
 endfunction
 
 function! statusline#tagbar#Mode(...) abort

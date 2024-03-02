@@ -70,7 +70,7 @@ function! statusline#Init() abort
                 \ }
 
     " Tagbar Integration
-    let g:tagbar_status_func = 'TagbarStatusFunc'
+    let g:tagbar_status_func = 'statusline#tagbar#Status'
 
     " ZoomWin Integration
     let g:statusline_zoomwin_funcref = []
