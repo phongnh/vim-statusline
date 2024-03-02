@@ -387,7 +387,7 @@ function! StatusLineLeftFill(...) abort
     endif
 
     return s:BuildMode([
-                \ [statusline#parts#Clipboard(), statusline#parts#Paste()],
+                \ [statusline#parts#Clipboard(), statusline#parts#Paste(), statusline#parts#Spell()],
                 \ ])
 endfunction
 
@@ -409,10 +409,7 @@ function! StatusLineRightFill(...) abort
     if len(l:mode)
         return get(l:mode, 'rfill', '')
     endif
-
-    let l:winwidth = winwidth(get(a:, 1, 0))
-
-    return s:BuildRightFill(statusline#parts#Spell())
+    return ''
 endfunction
 
 function! StatusLineInactiveMode(...) abort
