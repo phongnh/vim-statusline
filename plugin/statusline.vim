@@ -190,35 +190,6 @@ function! s:BuildRightFill(parts) abort
     return s:BuildFill(a:parts, g:statusline_symbols.right_fill_sep)
 endfunction
 
-function! s:FormatFileName(fname, winwidth, max_width) abort
-    let fname = a:fname
-
-    if a:winwidth < g:statusline_winwidth_config.small
-        return fnamemodify(fname, ':t')
-    endif
-
-    if strlen(fname) > a:winwidth && (fname[0] =~ '\~\|/') && g:statusline_shorten_path
-        let fname = statusline#ShortenPath(fname)
-    endif
-
-    let max_width = min([a:winwidth, a:max_width])
-
-    if strlen(fname) > max_width
-        let fname = fnamemodify(fname, ':t')
-    endif
-
-    return fname
-endfunction
-
-function! s:FileNameStatus(...) abort
-    let winwidth = get(a:, 1, 100)
-    return statusline#parts#Readonly() . s:FormatFileName(statusline#FileName(), winwidth, 50) . statusline#parts#Modified()
-endfunction
-
-function! s:InactiveFileNameStatus(...) abort
-    return statusline#parts#Readonly() . statusline#FileName() . statusline#parts#Modified()
-endfunction
-
 function! s:BuildGroup(exp) abort
     if a:exp =~ '^%'
         return '%( ' . a:exp . ' %)'
@@ -238,7 +209,7 @@ function! StatusLineActiveMode(...) abort
 
     return s:BuildMode([
                 \ g:statusline_show_git_branch ? statusline#git#Branch() : '',
-                \ s:FileNameStatus(l:winwidth - 2)
+                \ statusline#parts#FileName(),
                 \ ])
 endfunction
 
@@ -287,7 +258,7 @@ function! StatusLineInactiveMode(...) abort
     endif
 
     " « plugin/statusline.vim[+] »
-    return s:Wrap(s:InactiveFileNameStatus())
+    return s:Wrap(statusline#parts#InactiveFileName())
 endfunction
 
 
