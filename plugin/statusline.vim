@@ -90,20 +90,17 @@ function! StatusLine(winnum) abort
 
     if a:winnum == winnr()
         return join([
-                    \ statusline#Hi('StItem'),
+                    \ statusline#Hi('StatusLine'),
                     \ '%<',
                     \ statusline#Group(printf('StatusLineActiveMode(%d)', a:winnum)),
-                    \ statusline#Hi('StSep'),
                     \ statusline#Group(printf('StatusLineLeftFill(%d)', a:winnum)),
-                    \ statusline#Hi('StFill'),
                     \ '%=',
                     \ statusline#Group(printf('StatusLineRightFill(%d)', a:winnum)),
-                    \ statusline#Hi('StInfo'),
                     \ '%<',
                     \ statusline#Group(printf('StatusLineRightMode(%d)', a:winnum)),
                     \ ], '')
     else
-        return statusline#Hi('StItemNC') .
+        return statusline#Hi('StatusLineNC') .
                     \ '%<' .
                     \ statusline#Group(printf('StatusLineInactiveMode(%d)', a:winnum))
     endif
