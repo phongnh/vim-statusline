@@ -45,15 +45,22 @@ let s:displayable_tab_count = 5
 
 " Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
 let g:statusline_symbols = {
+            \ 'dos':            '[dos]',
+            \ 'mac':            '[mac]',
+            \ 'unix':           '[unix]',
             \ 'tabs':           'TABS',
+            \ 'linenr':         '☰',
+            \ 'branch':         '⎇ ',
+            \ 'readonly':       '',
+            \ 'bomb':           '🅑 ',
+            \ 'noeol':          '∉ ',
             \ 'clipboard':      '🅒 ',
             \ 'paste':          '🅟 ',
+            \ 'ellipsis':       '…',
             \ 'left':           '»',
             \ 'left_alt':       '»',
             \ 'right':          '«',
             \ 'right_alt':      '«',
-            \ 'readonly':       '',
-            \ 'ellipsis':       '…',
             \ 'left_fill_sep':  ' ',
             \ 'right_fill_sep': ' ',
             \ }
@@ -66,6 +73,24 @@ if g:statusline_powerline_fonts
                 \ 'left_alt':  "\ue0b1",
                 \ 'right_alt': "\ue0b3",
                 \ })
+endif
+
+let g:statusline_show_devicons = g:statusline_show_devicons && statusline#devicons#Detect()
+
+if g:statusline_show_devicons
+    call extend(g:statusline_symbols, {
+                \ 'bomb':  "\ue287 ",
+                \ 'noeol': "\ue293 ",
+                \ 'dos':   "\ue70f",
+                \ 'mac':   "\ue711",
+                \ 'unix':  "\ue712",
+                \ })
+    let g:statusline_symbols.unix = '[unix]'
+endif
+
+" Show Vim Logo in Tabline
+if g:statusline_show_devicons && g:statusline_show_vim_logo
+    let g:statusline_symbols.tabs = "\ue7c5 "
 endif
 
 call extend(g:statusline_symbols, {
@@ -127,39 +152,6 @@ let s:filetype_modes = {
             \ 'agit_diff':         'Agit Diff',
             \ 'agit_stat':         'Agit Stat',
             \ }
-
-let s:statusline_show_devicons = 0
-
-if g:statusline_show_devicons
-    " Detect vim-devicons or nerdfont.vim
-    " let s:has_devicons = exists('*WebDevIconsGetFileTypeSymbol') && exists('*WebDevIconsGetFileFormatSymbol')
-    if findfile('autoload/nerdfont.vim', &rtp) != ''
-        let s:statusline_show_devicons = 1
-
-        function! s:GetFileTypeSymbol(filename) abort
-            return nerdfont#find(a:filename)
-        endfunction
-
-        function! s:GetFileFormatSymbol(...) abort
-            return nerdfont#fileformat#find()
-        endfunction
-    elseif findfile('plugin/webdevicons.vim', &rtp) != ''
-        let s:statusline_show_devicons = 1
-
-        function! s:GetFileTypeSymbol(filename) abort
-            return WebDevIconsGetFileTypeSymbol(a:filename)
-        endfunction
-
-        function! s:GetFileFormatSymbol(...) abort
-            return WebDevIconsGetFileFormatSymbol()
-        endfunction
-    endif
-endif
-
-" Show Vim Logo in Tabline
-if g:statusline_show_vim_logo && s:statusline_show_devicons
-    let g:statusline_symbols.tabs = "\ue7c5 "
-endif
 
 function! s:HiSection(section) abort
     return printf('%%#%s#', a:section)
@@ -350,36 +342,6 @@ function! s:IndentationStatus(...) abort
     endif
 endfunction
 
-function! s:FileEncodingAndFormatStatus() abort
-    let l:encoding = strlen(&fileencoding) ? &fileencoding : &encoding
-    let l:bomb     = &bomb ? '[BOM]' : ''
-    let l:format   = strlen(&fileformat) ? printf('[%s]', &fileformat) : ''
-
-    " Skip common string utf-8[unix]
-    if (l:encoding . l:format) ==# 'utf-8[unix]'
-        return l:bomb
-    endif
-
-    return l:encoding . l:bomb . l:format
-endfunction
-
-function! s:FileInfoStatus(...) abort
-    let parts = [
-                \ s:FileEncodingAndFormatStatus(),
-                \ statusline#BufferType(),
-                \ ]
-
-    let compact = get(a:, 1, 0)
-
-    if s:statusline_show_devicons && !compact
-        call extend(parts, [
-                    \ s:GetFileTypeSymbol(expand('%')) . ' ',
-                    \ ])
-    endif
-
-    return join(s:RemoveEmptyElement(parts), ' ')
-endfunction
-
 function! s:GitBranchStatus(...) abort
     if g:statusline_show_git_branch
         let l:winwidth = get(a:, 1, 100)
@@ -438,7 +400,7 @@ function! StatusLineRightMode(...) abort
     let compact = g:statusline_show_git_branch && statusline#IsCompact(get(a:, 1, 0))
     return s:BuildRightMode([
                 \ statusline#parts#Indentation(compact),
-                \ s:FileInfoStatus(compact),
+                \ statusline#parts#FileType(),
                 \ ])
 endfunction
 
@@ -940,8 +902,8 @@ if exists('+tabline')
         else
             let bufname = fnamemodify(bufname, ':p:~:.')
 
-            if s:statusline_show_devicons
-                let dev_icon = ' ' . s:GetFileTypeSymbol(bufname) . ' '
+            if g:statusline_show_devicons
+                let dev_icon = statusline#devicons#FileType(bufname)
             endif
 
             if strlen(bufname) > 30
