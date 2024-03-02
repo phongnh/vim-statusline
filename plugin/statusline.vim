@@ -35,11 +35,6 @@ let g:statusline_winwidth_config = extend({
 " Disable NERDTree statusline
 let g:NERDTreeStatusline = -1
 
-" Window width
-let s:xsmall_window_width = 60
-let s:small_window_width  = 80
-let s:normal_window_width = 120
-
 " Number of displayable tabs
 let s:displayable_tab_count = 5
 
@@ -198,7 +193,7 @@ endfunction
 function! s:FormatFileName(fname, winwidth, max_width) abort
     let fname = a:fname
 
-    if a:winwidth < s:small_window_width
+    if a:winwidth < g:statusline_winwidth_config.small
         return fnamemodify(fname, ':t')
     endif
 
@@ -283,7 +278,7 @@ function! StatusLineLeftFill(...) abort
 
     let l:winwidth = winwidth(get(a:, 1, 0))
 
-    if l:winwidth >= s:small_window_width
+    if l:winwidth >= g:statusline_winwidth_config.small
     endif
 
     return s:BuildMode([
