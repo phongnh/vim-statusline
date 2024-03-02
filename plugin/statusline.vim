@@ -47,17 +47,7 @@ endfunction
 augroup VimStatusLine
     autocmd!
     autocmd VimEnter * call statusline#Init()
-    autocmd WinEnter,BufEnter,SessionLoadPost,FileChangedShellPost * call statusline#Refresh()
-    if !has('patch-8.1.1715')
-        autocmd FileType qf call statusline#Refresh()
-    endif
-    autocmd FileType NvimTree call statusline#Refresh()
-    autocmd VimEnter,ColorScheme * call statusline#colors#Init()
-    autocmd ColorScheme *
-                \ if !has('vim_starting') || expand('<amatch>') !=# 'macvim'
-                \   | call statusline#Refresh() |
-                \ endif
-    autocmd VimResized * call statusline#Refresh()
+    autocmd VimEnter,WinEnter,BufWinEnter,BufUnload * call statusline#Refresh()
 augroup END
 
 let g:qf_disable_statusline = 1
