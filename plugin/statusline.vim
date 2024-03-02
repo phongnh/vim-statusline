@@ -94,57 +94,6 @@ call extend(g:statusline_symbols, {
             \ 'right_alt_sep':  ' ' . g:statusline_symbols.right_alt . ' ',
             \ })
 
-" Alternate status dictionaries
-let s:filename_modes = {
-            \ 'ControlP':             'CtrlP',
-            \ '__CtrlSF__':           'CtrlSF',
-            \ '__CtrlSFPreview__':    'Preview',
-            \ '__Tagbar__':           'Tagbar',
-            \ '__Gundo__':            'Gundo',
-            \ '__Gundo_Preview__':    'Gundo Preview',
-            \ '__Mundo__':            'Mundo',
-            \ '__Mundo_Preview__':    'Mundo Preview',
-            \ '[BufExplorer]':        'BufExplorer',
-            \ '[Command Line]':       'Command Line',
-            \ '[Plugins]':            'Plugins',
-            \ '__committia_status__': 'Committia Status',
-            \ '__committia_diff__':   'Committia Diff',
-            \ '__doc__':              'Document',
-            \ '__LSP_SETTINGS__':     'LSP Settings',
-            \ }
-
-let s:filetype_modes = {
-            \ 'netrw':             'NetrwTree',
-            \ 'nerdtree':          'NERDTree',
-            \ 'chadtree':          'CHADTree',
-            \ 'LuaTree':           'LuaTree',
-            \ 'NvimTree':          'NvimTree',
-            \ 'neo-tree':          'NeoTree',
-            \ 'carbon.explorer':   'Carbon',
-            \ 'fern':              'Fern',
-            \ 'vaffle':            'Vaffle',
-            \ 'dirvish':           'Dirvish',
-            \ 'Mundo':             'Mundo',
-            \ 'MundoDiff':         'Mundo Preview',
-            \ 'startify':          'Startify',
-            \ 'alpha':             'Alpha',
-            \ 'tagbar':            'Tagbar',
-            \ 'vista':             'Vista',
-            \ 'vista_kind':        'Vista',
-            \ 'vim-plug':          'Plugins',
-            \ 'terminal':          'TERMINAL',
-            \ 'help':              'HELP',
-            \ 'qf':                'Quickfix',
-            \ 'godoc':             'GoDoc',
-            \ 'gedoc':             'GeDoc',
-            \ 'gitcommit':         'Commit Message',
-            \ 'fugitiveblame':     'FugitiveBlame',
-            \ 'gitmessengerpopup': 'Git Messenger',
-            \ 'agit':              'Agit',
-            \ 'agit_diff':         'Agit Diff',
-            \ 'agit_stat':         'Agit Stat',
-            \ }
-
 function! StatusLineActiveMode(...) abort
     " custom status
     let l:mode = statusline#parts#Integration()
