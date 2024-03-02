@@ -148,10 +148,6 @@ let s:filetype_modes = {
             \ 'agit_stat':         'Agit Stat',
             \ }
 
-function! s:HiSection(section) abort
-    return printf('%%#%s#', a:section)
-endfunction
-
 function! s:Wrap(text) abort
     return printf('%s %s %s', '«', a:text, '»')
 endfunction
@@ -188,14 +184,6 @@ endfunction
 
 function! s:BuildRightFill(parts) abort
     return s:BuildFill(a:parts, g:statusline_symbols.right_fill_sep)
-endfunction
-
-function! s:BuildGroup(exp) abort
-    if a:exp =~ '^%'
-        return '%( ' . a:exp . ' %)'
-    else
-        return '%( %{' . a:exp . '} %)'
-    endif
 endfunction
 
 function! StatusLineActiveMode(...) abort
@@ -268,28 +256,28 @@ function! StatusLine(winnum) abort
         if a:winnum == winnr()
             return ''
         else
-            return s:HiSection('StNone')
+            return statusline#Hi('StNone')
         endif
     endif
 
     if a:winnum == winnr()
         return join([
-                    \ s:HiSection('StItem'),
+                    \ statusline#Hi('StItem'),
                     \ '%<',
-                    \ s:BuildGroup(printf('StatusLineActiveMode(%d)', a:winnum)),
-                    \ s:HiSection('StSep'),
-                    \ s:BuildGroup(printf('StatusLineLeftFill(%d)', a:winnum)),
-                    \ s:HiSection('StFill'),
+                    \ statusline#Group(printf('StatusLineActiveMode(%d)', a:winnum)),
+                    \ statusline#Hi('StSep'),
+                    \ statusline#Group(printf('StatusLineLeftFill(%d)', a:winnum)),
+                    \ statusline#Hi('StFill'),
                     \ '%=',
-                    \ s:BuildGroup(printf('StatusLineRightFill(%d)', a:winnum)),
-                    \ s:HiSection('StInfo'),
+                    \ statusline#Group(printf('StatusLineRightFill(%d)', a:winnum)),
+                    \ statusline#Hi('StInfo'),
                     \ '%<',
-                    \ s:BuildGroup(printf('StatusLineRightMode(%d)', a:winnum)),
+                    \ statusline#Group(printf('StatusLineRightMode(%d)', a:winnum)),
                     \ ], '')
     else
-        return s:HiSection('StItemNC') .
+        return statusline#Hi('StItemNC') .
                     \ '%<' .
-                    \ s:BuildGroup(printf('StatusLineInactiveMode(%d)', a:winnum))
+                    \ statusline#Group(printf('StatusLineInactiveMode(%d)', a:winnum))
     endif
 endfunction
 
@@ -376,7 +364,7 @@ let g:qf_disable_statusline = 1
 " Init tabline
 if exists('+tabline')
     function! s:TabPlaceholder(tab) abort
-        return s:HiSection('StTabPlaceholder') . printf('%%%d  %s %%*', a:tab, g:statusline_symbols.ellipsis)
+        return statusline#Hi('StTabPlaceholder') . printf('%%%d  %s %%*', a:tab, g:statusline_symbols.ellipsis)
     endfunction
 
     function! s:TabLabel(tabnr) abort
@@ -387,7 +375,7 @@ if exists('+tabline')
         let bufname = bufname(bufnr)
 
         let label = '%' . tabnr . 'T'
-        let label .= (tabnr == tabpagenr() ? s:HiSection('StTabItem') : s:HiSection('StTabItemNC'))
+        let label .= (tabnr == tabpagenr() ? statusline#Hi('StTabItem') : statusline#Hi('StTabItemNC'))
         let label .= ' ' . tabnr . ':'
 
         let dev_icon = ''
@@ -422,7 +410,7 @@ if exists('+tabline')
     endfunction
 
     function! Tabline() abort
-        let stl = s:HiSection('StTabTitle') . ' ' . g:statusline_symbols.tabs . ' ' . '%*'
+        let stl = statusline#Hi('StTabTitle') . ' ' . g:statusline_symbols.tabs . ' ' . '%*'
 
         let tab_count = tabpagenr('$')
         let max_tab_count = s:displayable_tab_count
@@ -465,10 +453,10 @@ if exists('+tabline')
             endif
         endif
 
-        let stl .= s:HiSection('StTabFill') . '%='
+        let stl .= statusline#Hi('StTabFill') . '%='
 
         if g:statusline_show_tab_close_button
-            let stl .= s:HiSection('StTabCloseButton') . '%999X  X  '
+            let stl .= statusline#Hi('StTabCloseButton') . '%999X  X  '
         endif
 
         return stl

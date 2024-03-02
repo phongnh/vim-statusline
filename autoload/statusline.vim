@@ -53,6 +53,18 @@ function! statusline#IsCompact(...) abort
                 \ ], 1) > 1
 endfunction
 
+function! statusline#Hi(section) abort
+    return printf('%%#%s#', a:section)
+endfunction
+
+function! statusline#Group(exp) abort
+    if a:exp =~ '^%'
+        return '%( ' . a:exp . ' %)'
+    else
+        return '%( %{' . a:exp . '} %)'
+    endif
+endfunction
+
 function! statusline#BufferType() abort
     return strlen(&filetype) ? &filetype : &buftype
 endfunction
