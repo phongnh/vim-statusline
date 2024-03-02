@@ -257,72 +257,6 @@ function! s:ReadonlyStatus() abort
     return &readonly ? ' ' . g:statusline_symbols.readonly . ' ' : ''
 endfunction
 
-function! s:GetGitBranch() abort
-    " Get branch from caching if it is available
-    if has_key(b:, 'statusline_git_branch') && reltimefloat(reltime(s:statusline_last_finding_branch_time)) < s:statusline_time_threshold
-        return b:statusline_git_branch
-    endif
-
-    let branch = ''
-
-    if exists('*FugitiveHead')
-        let branch = FugitiveHead()
-
-        if empty(branch) && exists('*FugitiveDetect') && !exists('b:git_dir')
-            call FugitiveDetect(getcwd())
-            let branch = FugitiveHead()
-        endif
-    elseif exists('*fugitive#head')
-        let branch = fugitive#head()
-
-        if empty(branch) && exists('*fugitive#detect') && !exists('b:git_dir')
-            call fugitive#detect(getcwd())
-            let branch = fugitive#head()
-        endif
-    elseif exists(':Gina') == 2
-        let branch = gina#component#repo#branch()
-    endif
-
-    " Caching
-    let b:statusline_git_branch = branch
-    let s:statusline_last_finding_branch_time = reltime()
-
-    return branch
-endfunction
-
-function! s:ShortenBranch(branch, length) abort
-    let branch = a:branch
-
-    if strlen(branch) > a:length
-        let branch = s:ShortenPath(branch)
-    endif
-
-    if strlen(branch) > a:length
-        let branch = fnamemodify(branch, ':t')
-    endif
-
-    if strlen(branch) > a:length
-        " Show only JIRA ticket prefix
-        let branch = substitute(branch, '^\([A-Z]\{3,}-\d\{1,}\)-.\+', '\1', '')
-    endif
-
-    return branch
-endfunction
-
-function! s:FormatBranch(branch, winwidth) abort
-    if a:winwidth >= s:normal_window_width
-        return s:ShortenBranch(a:branch, 50)
-    endif
-
-    let branch = s:ShortenBranch(a:branch, 30)
-
-    if strlen(branch) > 30
-        let branch = strcharpart(branch, 0, 29) . g:statusline_symbols.ellipsis
-    endif
-
-    return branch
-endfunction
-
 function! s:FileNameStatus(...) abort
     let winwidth = get(a:, 1, 100)
     return s:FormatFileName(statusline#FileName(), winwidth, 50) . s:ModifiedStatus() . s:ReadonlyStatus()
@@ -342,15 +276,6 @@ function! s:IndentationStatus(...) abort
     endif
 endfunction
 
-function! s:GitBranchStatus(...) abort
-    if g:statusline_show_git_branch
-        let l:winwidth = get(a:, 1, 100)
-        return s:FormatBranch(s:GetGitBranch(), l:winwidth)
-    endif
-
-    return ''
-endfunction
-
 function! s:BuildGroup(exp) abort
     if a:exp =~ '^%'
         return '%( ' . a:exp . ' %)'
@@ -367,10 +292,9 @@ function! StatusLineActiveMode(...) abort
     endif
 
     let l:winwidth = winwidth(get(a:, 1, 0))
-    let show_more_info = (l:winwidth >= s:small_window_width)
 
     return s:BuildMode([
-                \ show_more_info ? s:GitBranchStatus(l:winwidth) : '',
+                \ g:statusline_show_git_branch ? statusline#git#Branch() : '',
                 \ s:FileNameStatus(l:winwidth - 2)
                 \ ])
 endfunction
@@ -458,8 +382,6 @@ endfunction
 " Plugin Integration
 " Save plugin states
 let s:statusline = {}
-let s:statusline_time_threshold = 0.50
-let s:statusline_last_finding_branch_time = reltime()
 
 function! s:CustomMode() abort
     let fname = expand('%:t')
