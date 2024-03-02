@@ -65,6 +65,20 @@ function! statusline#Group(exp) abort
     endif
 endfunction
 
+function! statusline#Wrap(text) abort
+    return printf('%s %s %s', '«', a:text, '»')
+endfunction
+
+function! statusline#ModeConcatenate(parts, ...) abort
+    let separator = get(a:, 1, 0) ? g:crystalline_symbols.right_mode_sep : g:crystalline_symbols.left_mode_sep
+    return join(filter(copy(a:parts), 'v:val !=# ""'), ' ' . separator . ' ')
+endfunction
+
+function! statusline#Concatenate(parts, ...) abort
+    let separator = get(a:, 1, 0) ? g:crystalline_symbols.right_fill_sep : g:crystalline_symbols.left_fill_sep
+    return join(filter(copy(a:parts), 'v:val !=# ""'), ' ' . separator . ' ')
+endfunction
+
 function! statusline#BufferType() abort
     return strlen(&filetype) ? &filetype : &buftype
 endfunction

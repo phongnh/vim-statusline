@@ -1,44 +1,6 @@
 " https://github.com/ctrlpvim/ctrlp.vim
 let s:statusline_ctrlp = {}
 
-" TODO: Move these variables and functions to autload and reuse them
-function! s:Wrap(text) abort
-    return printf('%s %s %s', '«', a:text, '»')
-endfunction
-
-function! s:RemoveEmptyElement(list) abort
-    return filter(copy(a:list), '!empty(v:val)')
-endfunction
-
-function! s:EnsureList(list) abort
-    return type(a:list) == type([]) ? deepcopy(a:list) : [a:list]
-endfunction
-
-function! s:ParseList(list, sep) abort
-    let l:list = s:EnsureList(a:list)
-    let l:list = map(copy(l:list), "type(v:val) == type([]) ? join(s:RemoveEmptyElement(v:val), a:sep) : v:val")
-    return s:RemoveEmptyElement(l:list)
-endfunction
-
-function! s:BuildMode(parts, ...) abort
-    let l:sep = get(a:, 1, g:statusline_symbols.left_mode_sep)
-    let l:parts = s:ParseList(a:parts, l:sep)
-    return join(l:parts, l:sep)
-endfunction
-
-function! s:BuildRightMode(parts) abort
-    return s:BuildMode(a:parts, g:statusline_symbols.right_mode_sep)
-endfunction
-
-function! s:BuildFill(parts, ...) abort
-    let l:sep = get(a:, 1, g:statusline_symbols.left_fill_sep)
-    let l:parts = s:ParseList(a:parts, l:sep)
-    return join(l:parts, l:sep)
-endfunction
-
-function! s:BuildRightFill(parts) abort
-    return s:BuildFill(a:parts, g:statusline_symbols.right_fill_sep)
-endfunction
 function! s:GetCurrentDir() abort
     let dir = fnamemodify(getcwd(), ':~:.')
     return empty(dir) ? getcwd() : dir
@@ -73,16 +35,16 @@ function! statusline#ctrlp#Mode(...) abort
                 \ }
 
     if s:statusline_ctrlp.main
-        let lfill = s:BuildFill([
+        let lfill = statusline#Concatenate([
                     \ s:statusline_ctrlp.prev,
-                    \ s:Wrap(s:statusline_ctrlp.item),
+                    \ statusline#Wrap(s:statusline_ctrlp.item),
                     \ s:statusline_ctrlp.next,
                     \ ])
 
-        let rfill = s:BuildRightFill([
+        let rfill = statusline#Concatenate([
                     \ s:statusline_ctrlp.focus,
                     \ '[' . s:statusline_ctrlp.byfname . ']',
-                    \ ])
+                    \ ], 1)
 
         call extend(result, {
                     \ 'lfill': lfill,

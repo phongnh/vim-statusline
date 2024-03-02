@@ -224,10 +224,10 @@ function! StatusLineRightMode(...) abort
     endif
 
     let compact = g:statusline_show_git_branch && statusline#IsCompact(get(a:, 1, 0))
-    return s:BuildRightMode([
+    return statusline#ModeConcatenate([
                 \ statusline#parts#Indentation(compact),
                 \ statusline#parts#FileType(),
-                \ ])
+                \ ], 1)
 endfunction
 
 function! StatusLineRightFill(...) abort
