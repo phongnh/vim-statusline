@@ -374,7 +374,6 @@ function! s:FileInfoStatus(...) abort
     if s:statusline_show_devicons && !compact
         call extend(parts, [
                     \ s:GetFileTypeSymbol(expand('%')) . ' ',
-                    \ s:GetFileFormatSymbol() . ' ',
                     \ ])
     endif
 
@@ -388,32 +387,6 @@ function! s:GitBranchStatus(...) abort
     endif
 
     return ''
-endfunction
-
-function! s:IsClipboardEnabled() abort
-    return match(&clipboard, 'unnamed') > -1
-endfunction
-
-function! s:ClipboardStatus() abort
-    return s:IsClipboardEnabled() ? g:statusline_symbols.clipboard : ''
-endfunction
-
-function! s:PasteStatus() abort
-    if &paste
-        return g:statusline_symbols.paste
-    endif
-    return ''
-endfunction
-
-function! s:SpellStatus() abort
-    if &spell
-        return toupper(substitute(&spelllang, ',', '/', 'g'))
-    endif
-    return ''
-endfunction
-
-function! s:IsCompact(winwidth) abort
-    return &spell || &paste || s:IsClipboardEnabled() || a:winwidth <= s:xsmall_window_width
 endfunction
 
 function! s:BuildGroup(exp) abort
@@ -452,7 +425,7 @@ function! StatusLineLeftFill(...) abort
     endif
 
     return s:BuildMode([
-                \ [s:ClipboardStatus(), s:PasteStatus()],
+                \ [statusline#parts#Clipboard(), statusline#parts#Paste()],
                 \ ])
 endfunction
 
@@ -462,12 +435,9 @@ function! StatusLineRightMode(...) abort
         return get(l:mode, 'rmode', '')
     endif
 
-    let l:winwidth = winwidth(get(a:, 1, 0))
-    let show_more_info = (l:winwidth >= s:small_window_width)
-    let compact = g:statusline_show_git_branch && s:IsCompact(l:winwidth)
-
+    let compact = g:statusline_show_git_branch && statusline#IsCompact(get(a:, 1, 0))
     return s:BuildRightMode([
-                \ show_more_info ? s:IndentationStatus(compact) : '',
+                \ statusline#parts#Indentation(compact),
                 \ s:FileInfoStatus(compact),
                 \ ])
 endfunction
@@ -480,7 +450,7 @@ function! StatusLineRightFill(...) abort
 
     let l:winwidth = winwidth(get(a:, 1, 0))
 
-    return s:BuildRightFill(s:SpellStatus())
+    return s:BuildRightFill(statusline#parts#Spell())
 endfunction
 
 function! StatusLineInactiveMode(...) abort
