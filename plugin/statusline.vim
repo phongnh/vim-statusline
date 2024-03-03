@@ -49,8 +49,6 @@ augroup VimStatusLine
     autocmd VimEnter,WinEnter,BufWinEnter,BufUnload * call statusline#Refresh()
 augroup END
 
-let g:qf_disable_statusline = 1
-
 " Init tabline
 if exists('+tabline')
     set tabline=%!statusline#tabline#Init()

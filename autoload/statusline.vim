@@ -170,6 +170,9 @@ function! statusline#Setup() abort
     " Disable NERDTree statusline
     let g:NERDTreeStatusline = -1
 
+    " Disable Quickfix statusline
+    let g:qf_disable_statusline = 1
+
     " Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
     let g:statusline_symbols = {
                 \ 'dos':       '[dos]',
