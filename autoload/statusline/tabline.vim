@@ -1,8 +1,5 @@
-" Number of displayable tabs
-let s:displayable_tab_count = 5
-
 function! statusline#tabline#Placeholder(tab) abort
-    return statusline#Hi('TabLineFill') . printf('%%%d  %s %%*', a:tab, g:statusline_symbols.ellipsis)
+    return statusline#Hi('TabLineSel') . printf('%%%d  %s %%*', a:tab, g:statusline_symbols.ellipsis)
 endfunction
 
 function! statusline#tabline#Label(tabnr) abort
@@ -23,7 +20,7 @@ function! statusline#tabline#Label(tabnr) abort
             let bufname = substitute(bufname, '.*\/\ze.', '', '')
         endif
     else
-        let bufname = fnamemodify(bufname, ':p:~:.')
+        let bufname = fnamemodify(bufname, tabpagenr('$') >= 4 ? ':p:t' : ':p:~:.')
 
         if g:statusline_show_devicons
             let dev_icon = statusline#devicons#FileType(bufname)
@@ -48,10 +45,11 @@ function! statusline#tabline#Label(tabnr) abort
 endfunction
 
 function! statusline#tabline#Init() abort
-    let stl = statusline#Hi('TabLineSel') . ' ' . g:statusline_symbols.tabs . ' ' . '%*'
-
     let tab_count = tabpagenr('$')
-    let max_tab_count = s:displayable_tab_count
+    let max_tab_count = &columns >= 120 ? g:statusline_max_tabs : 3
+
+    let tab_label = g:statusline_symbols.tabs . (tab_count > max_tab_count ? printf('[%d]', tab_count) : '')
+    let stl = statusline#Hi('TabLineSel') . ' ' . tab_label . ' ' . '%*'
 
     if tab_count <= max_tab_count
         for i in range(1, tab_count)
