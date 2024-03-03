@@ -49,7 +49,7 @@ function! statusline#tabline#Init() abort
     let max_tab_count = &columns >= 120 ? g:statusline_max_tabs : 3
 
     let tab_label = g:statusline_symbols.tabs . (tab_count > max_tab_count ? printf('[%d]', tab_count) : '')
-    let stl = statusline#Hi('TabLineSel') . ' ' . tab_label . ' ' . '%*'
+    let stl = statusline#Hi('TabLineLabel') . ' ' . tab_label . ' ' . '%*'
 
     if tab_count <= max_tab_count
         for i in range(1, tab_count)

@@ -30,4 +30,10 @@ function! statusline#colors#Init() abort
                 \ 'cterm': 'bold,reverse',
                 \ })
     call statusline#colors#Highlight('StatusLineMode', l:mode)
+
+    let l:label = statusline#colors#Extract('TabLineSel')
+    call extend(l:label, {
+                \ 'cterm': 'bold',
+                \ })
+    call statusline#colors#Highlight('TabLineLabel', l:label)
 endfunction
