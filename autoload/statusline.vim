@@ -57,7 +57,7 @@ function! statusline#Hi(section) abort
     return printf('%%#%s#', a:section)
 endfunction
 
-function! statusline#Group(exp) abort
+function! statusline#ModeGroup(exp) abort
     if a:exp =~ '^%'
         return '%( ' . a:exp . ' %)'
     else
@@ -65,13 +65,31 @@ function! statusline#Group(exp) abort
     endif
 endfunction
 
+function! statusline#Group(exp) abort
+    if a:exp =~ '^%'
+        return '%(' . a:exp . ' %)'
+    else
+        return '%(%{' . a:exp . '} %)'
+    endif
+endfunction
+
 function! statusline#Wrap(text) abort
     return empty(a:text) ? '' : printf('%s %s %s', '«', a:text, '»')
 endfunction
 
+function! statusline#Append(text, ...) abort
+    let sep = get(a:, 1, 0) ? g:statusline_symbols.left : g:statusline_symbols.right
+    return empty(a:text) ? '' : printf('%s %s', a:text, sep)
+endfunction
+
+function! statusline#Prepend(text, ...) abort
+    let sep = get(a:, 1, 0) ? g:statusline_symbols.right : g:statusline_symbols.left
+    return empty(a:text) ? '' : printf('%s %s', sep, a:text)
+endfunction
+
 function! statusline#Concatenate(parts, ...) abort
-    let separator = get(a:, 1, 0) ? g:statusline_symbols.right_alt_sep : g:statusline_symbols.left_alt_sep
-    return join(filter(copy(a:parts), 'v:val !=# ""'), ' ' . separator . ' ')
+    let sep = get(a:, 1, 0) ? g:statusline_symbols.right_alt_sep : g:statusline_symbols.left_alt_sep
+    return join(filter(copy(a:parts), 'v:val !=# ""'), g:statusline_symbols.space . sep . g:statusline_symbols.space)
 endfunction
 
 function! statusline#BufferType() abort
@@ -155,6 +173,7 @@ function! statusline#Setup() abort
                 \ 'mac':            '[mac]',
                 \ 'unix':           '[unix]',
                 \ 'tabs':           'TABS',
+                \ 'space':          ' ',
                 \ 'linenr':         '☰',
                 \ 'branch':         '⎇ ',
                 \ 'readonly':       '',
@@ -204,6 +223,12 @@ function! statusline#Setup() abort
                 \ 'left_alt_sep':   g:statusline_symbols.left_alt,
                 \ 'right_sep':      g:statusline_symbols.right,
                 \ 'right_alt_sep':  g:statusline_symbols.right_alt,
+                \ })
+    call extend(g:statusline_symbols, {
+                \ 'left':          '→',
+                \ 'right':         '←',
+                \ 'left_alt_sep':  '→',
+                \ 'right_alt_sep': '←',
                 \ })
 endfunction
 

@@ -18,39 +18,31 @@ endfunction
 function! statusline#sections#Plugin(...) abort
     let l:mode = statusline#parts#Integration()
     if len(l:mode)
-        return get(l:mode, 'lfill', '')
+        return statusline#Prepend(get(l:mode, 'lfill', ''))
     endif
-    return call('s:RenderPluginSection', a:000)
+    return statusline#Prepend(call('s:RenderPluginSection', a:000))
 endfunction
 
 function! s:RenderPluginSection(...) abort
     let l:winnr = get(a:, 1, 0)
 
-    if g:statusline_show_git_branch && winwidth(l:winnr) >= g:statusline_winwidth_config.small
-        return statusline#Concatenate([
-                    \ statusline#git#Branch(),
-                    \ statusline#parts#FileName(),
-                    \ ])
+    if g:statusline_show_git_branch && winwidth(l:winnr) >= g:statusline_winwidth_config.normal
+        return statusline#git#Branch()
     endif
 
-    return statusline#parts#FileName()
+    return ''
 endfunction
 
 function! statusline#sections#FileName(...) abort
     let l:mode = statusline#parts#Integration()
     if len(l:mode)
-        return get(l:mode, 'filename', '')
+        return statusline#Prepend(get(l:mode, 'filename', ''))
     endif
-    return call('s:RenderFileNameSection', a:000)
+    return statusline#Prepend(call('s:RenderFileNameSection', a:000))
 endfunction
 
 function! s:RenderFileNameSection(...) abort
-    let l:winwidth = winwidth(get(a:, 1, 0))
-
-    if l:winwidth >= g:statusline_winwidth_config.small
-    endif
-
-    return ''
+    return statusline#parts#FileName()
 endfunction
 
 function! statusline#sections#Buffer(...) abort
@@ -68,13 +60,16 @@ endfunction
 function! statusline#sections#Settings(...) abort
     let l:mode = statusline#parts#Integration()
     if len(l:mode)
-        return get(l:mode, 'rfill', '')
+        return statusline#Append(get(l:mode, 'rfill', ''))
     endif
-    return call('s:RenderSettingsSection', a:000)
+    return statusline#Append(call('s:RenderSettingsSection', a:000))
 endfunction
 
 function! s:RenderSettingsSection(...) abort
     let l:winnr = get(a:, 1, 0)
+    if winwidth(0) <= g:statusline_winwidth_config.compact
+        return ''
+    endif
     let l:compact = statusline#IsCompact(l:winnr)
     return statusline#Concatenate([
                 \ statusline#parts#Indentation(l:compact),
@@ -85,9 +80,9 @@ endfunction
 function! statusline#sections#Info(...) abort
     let l:mode = statusline#parts#Integration()
     if len(l:mode)
-        return get(l:mode, 'info', '')
+        return statusline#Append(get(l:mode, 'info', ''))
     endif
-    return call('s:RenderInfoSection', a:000)
+    return statusline#Append(call('s:RenderInfoSection', a:000))
 endfunction
 
 function! s:RenderInfoSection(...) abort

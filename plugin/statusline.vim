@@ -16,30 +16,26 @@ call statusline#Setup()
 function! StatusLine(winnum) abort
     " Goyo Integration
     if exists('#goyo')
-        if a:winnum == winnr()
-            return ''
-        else
-            return statusline#Hi('StNone')
-        endif
+        return ''
     endif
 
     if a:winnum == winnr()
         return join([
                     \ statusline#Hi('StatusLine'),
                     \ '%<',
-                    \ statusline#Group(printf('statusline#sections#Mode(%d)', a:winnum)),
+                    \ statusline#ModeGroup(printf('statusline#sections#Mode(%d)', a:winnum)),
                     \ statusline#Group(printf('statusline#sections#Plugin(%d)', a:winnum)),
                     \ statusline#Group(printf('statusline#sections#FileName(%d)', a:winnum)),
                     \ '%=',
-                    \ '%<',
                     \ statusline#Group(printf('statusline#sections#Info(%d)', a:winnum)),
                     \ statusline#Group(printf('statusline#sections#Settings(%d)', a:winnum)),
                     \ statusline#Group(printf('statusline#sections#Buffer(%d)', a:winnum)),
+                    \ '%<',
                     \ ], '')
     else
         return statusline#Hi('StatusLineNC') .
                     \ '%<' .
-                    \ statusline#Group(printf('statusline#sections#InactiveMode(%d)', a:winnum))
+                    \ statusline#ModeGroup(printf('statusline#sections#InactiveMode(%d)', a:winnum))
     endif
 endfunction
 

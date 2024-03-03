@@ -2,7 +2,7 @@
 let s:displayable_tab_count = 5
 
 function! statusline#tabline#Placeholder(tab) abort
-    return statusline#Hi('StTabPlaceholder') . printf('%%%d  %s %%*', a:tab, g:statusline_symbols.ellipsis)
+    return statusline#Hi('TabLineFill') . printf('%%%d  %s %%*', a:tab, g:statusline_symbols.ellipsis)
 endfunction
 
 function! statusline#tabline#Label(tabnr) abort
@@ -13,7 +13,7 @@ function! statusline#tabline#Label(tabnr) abort
     let bufname = bufname(bufnr)
 
     let label = '%' . tabnr . 'T'
-    let label .= (tabnr == tabpagenr() ? statusline#Hi('StTabItem') : statusline#Hi('StTabItemNC'))
+    let label .= (tabnr == tabpagenr() ? statusline#Hi('TabLineSel') : statusline#Hi('TabLine'))
     let label .= ' ' . tabnr . ':'
 
     let dev_icon = ''
@@ -48,7 +48,7 @@ function! statusline#tabline#Label(tabnr) abort
 endfunction
 
 function! statusline#tabline#Init() abort
-    let stl = statusline#Hi('StTabTitle') . ' ' . g:statusline_symbols.tabs . ' ' . '%*'
+    let stl = statusline#Hi('TabLineSel') . ' ' . g:statusline_symbols.tabs . ' ' . '%*'
 
     let tab_count = tabpagenr('$')
     let max_tab_count = s:displayable_tab_count
@@ -91,10 +91,10 @@ function! statusline#tabline#Init() abort
         endif
     endif
 
-    let stl .= statusline#Hi('StTabFill') . '%='
+    let stl .= statusline#Hi('TabLineFill') . '%='
 
     if g:statusline_show_tab_close_button
-        let stl .= statusline#Hi('StTabCloseButton') . '%999X  X  '
+        let stl .= statusline#Hi('TabLineSel') . '%999X  X  '
     endif
 
     return stl
