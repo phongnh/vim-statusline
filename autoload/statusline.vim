@@ -157,9 +157,6 @@ function! statusline#Setup() abort
                 \ '':   '',
                 \ }
 
-    " Max tabs
-    let g:statusline_max_tabs = 5
-
     " Window width
     let g:statusline_winwidth_config = extend({
                 \ 'compact': 60,

@@ -27,19 +27,20 @@ function s:TabBufferName(bufnr) abort
     let bufname = bufname(a:bufnr)
     let buftype = s:TabBufferType(a:bufnr)
 
-    if buftype ==# 'nofile' && bufname =~ '\/.'
-        let bufname = substitute(bufname, '.*\/\ze.', '', '')
-    endif
-
     if has_key(g:statusline_filetype_modes, buftype)
         return g:statusline_filetype_modes[buftype]
     endif
 
-    if has_key(g:statusline_filename_modes, bufname)
-        return g:statusline_filename_modes[bufname]
+    let fname = fnamemodify(bufname, ':t')
+    if has_key(g:statusline_filename_modes, fname)
+        return g:statusline_filename_modes[fname]
     endif
 
-    let bufname = fnamemodify(bufname, tabpagenr('$') >= 4 ? ':p:t' : ':p:~:.')
+    if buftype ==# 'nofile' && bufname =~ '\/.'
+        let bufname = substitute(bufname, '.*\/\ze.', '', '')
+    endif
+
+    let bufname = fnamemodify(bufname, ':p:~:.')
 
     if strlen(bufname) > 30
         if bufname[0] =~ '\~\|/' && g:statusline_shorten_path
@@ -65,32 +66,39 @@ function! s:TabName(tabnr) abort
     return g:statusline_symbols.space . label . g:statusline_symbols.space
 endfunction
 
-function! statusline#tabline#Init() abort
-    let tab_count = tabpagenr('$')
-    let max_tab_count = &columns >= 120 ? g:statusline_max_tabs : 3
+function! s:GetMaxTabs() abort
+    if &columns >= 120
+        return &columns / 35 
+    else
+        return 3
+    endif
+endfunction
 
-    let tab_label = g:statusline_symbols.tabs . (tab_count > max_tab_count ? printf('[%d]', tab_count) : '')
+function! statusline#tabline#Init() abort
+    let max_tabs = s:GetMaxTabs()
+    let tab_count = tabpagenr('$')
+
+    let tab_label = g:statusline_symbols.tabs . (tab_count > max_tabs ? printf(' [%d]', tab_count) : '')
     let stl = statusline#Hi('TabLineLabel') . ' ' . tab_label . ' ' . '%*'
 
-    if tab_count <= max_tab_count
+    if tab_count <= max_tabs
         for i in range(1, tab_count)
             let stl .= s:TabName(i)
         endfor
     else
-        let tabs = range(1, tab_count)
         let current_tab = tabpagenr()
         let current_index = current_tab - 1
 
         if current_tab == 1
             let start_index = 0
-            let end_index = start_index + (max_tab_count - 1)
+            let end_index = start_index + (max_tabs - 1)
         elseif current_tab == tab_count
             let end_index = -1
-            let start_index = end_index - (max_tab_count - 1)
+            let start_index = end_index - (max_tabs - 1)
         else
-            let start_index = current_index - (max_tab_count - 2)
+            let start_index = current_index - (max_tabs - 2)
             let start_index = max([start_index, 0])
-            let end_index = start_index + (max_tab_count - 1)
+            let end_index = start_index + (max_tabs - 1)
         endif
 
         if current_index == (tab_count - 1)
@@ -99,9 +107,7 @@ function! statusline#tabline#Init() abort
             let stl .= s:TabPlaceholder(start_index + 1)
         endif
 
-        let displayable_tabs = tabs[start_index:end_index]
-
-        for i in displayable_tabs
+        for i in range(1, tab_count)[start_index:end_index]
             let stl .= s:TabName(i)
         endfor
 
