@@ -61,7 +61,7 @@ function! s:TabName(tabnr) abort
     let bufnr = tabpagebuflist(a:tabnr)[winnr - 1]
     let label = '%' . a:tabnr . 'T'
     let label .= (a:tabnr == tabpagenr() ? statusline#Hi('TabLineSel') : statusline#Hi('TabLine'))
-    let label .= join(filter([s:TabNumber(a:tabnr), s:TabReadonly(bufnr), s:TabBufferName(bufnr)], '!empty(v:val)'),  g:statusline_symbols.space)
+    let label .= s:TabNumber(a:tabnr) . s:TabReadonly(bufnr) . s:TabBufferName(bufnr)
     return g:statusline_symbols.space . label . g:statusline_symbols.space
 endfunction
 
