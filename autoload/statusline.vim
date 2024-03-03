@@ -88,7 +88,7 @@ function! statusline#Prepend(text, ...) abort
 endfunction
 
 function! statusline#Concatenate(parts, ...) abort
-    let sep = get(a:, 1, 0) ? g:statusline_symbols.right_alt_sep : g:statusline_symbols.left_alt_sep
+    let sep = get(a:, 1, 0) ? g:statusline_symbols.right : g:statusline_symbols.left
     return join(filter(copy(a:parts), 'v:val !=# ""'), g:statusline_symbols.space . sep . g:statusline_symbols.space)
 endfunction
 
@@ -172,38 +172,31 @@ function! statusline#Setup() abort
 
     " Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
     let g:statusline_symbols = {
-                \ 'dos':            '[dos]',
-                \ 'mac':            '[mac]',
-                \ 'unix':           '[unix]',
-                \ 'tabs':           'TABS',
-                \ 'space':          ' ',
-                \ 'linenr':         '☰',
-                \ 'branch':         '⎇ ',
-                \ 'readonly':       '',
-                \ 'bomb':           '🅑 ',
-                \ 'noeol':          '∉ ',
-                \ 'clipboard':      '🅒 ',
-                \ 'paste':          '🅟 ',
-                \ 'ellipsis':       '…',
-                \ 'left':           '»',
-                \ 'left_alt':       '»',
-                \ 'right':          '«',
-                \ 'right_alt':      '«',
-                \ 'left_fill_sep':  ' ',
-                \ 'right_fill_sep': ' ',
+                \ 'dos':       '[dos]',
+                \ 'mac':       '[mac]',
+                \ 'unix':      '[unix]',
+                \ 'tabs':      'TABS',
+                \ 'space':     ' ',
+                \ 'linenr':    '☰',
+                \ 'branch':    '⎇ ',
+                \ 'readonly':  '',
+                \ 'bomb':      '🅑 ',
+                \ 'noeol':     '∉ ',
+                \ 'clipboard': '🅒 ',
+                \ 'paste':     '🅟 ',
+                \ 'ellipsis':  '…',
                 \ }
 
-    if g:statusline_powerline_fonts
+    let g:statusline_show_devicons = g:statusline_show_devicons && statusline#devicons#Detect()
+
+    if g:statusline_powerline_fonts || g:statusline_show_devicons
         " Powerline Symbols
         call extend(g:statusline_symbols, {
-                    \ 'left':      "\ue0b0",
-                    \ 'right':     "\ue0b2",
-                    \ 'left_alt':  "\ue0b1",
-                    \ 'right_alt': "\ue0b3",
+                    \ 'linenr':   "\ue0a1",
+                    \ 'branch':   "\ue0a0",
+                    \ 'readonly': "\ue0a2",
                     \ })
     endif
-
-    let g:statusline_show_devicons = g:statusline_show_devicons && statusline#devicons#Detect()
 
     if g:statusline_show_devicons
         call extend(g:statusline_symbols, {
@@ -222,16 +215,8 @@ function! statusline#Setup() abort
     endif
 
     call extend(g:statusline_symbols, {
-                \ 'left_sep':       g:statusline_symbols.left,
-                \ 'left_alt_sep':   g:statusline_symbols.left_alt,
-                \ 'right_sep':      g:statusline_symbols.right,
-                \ 'right_alt_sep':  g:statusline_symbols.right_alt,
-                \ })
-    call extend(g:statusline_symbols, {
-                \ 'left':          '→',
-                \ 'right':         '←',
-                \ 'left_alt_sep':  '→',
-                \ 'right_alt_sep': '←',
+                \ 'left':  '→',
+                \ 'right': '←',
                 \ })
 endfunction
 
