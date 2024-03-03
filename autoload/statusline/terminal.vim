@@ -1,3 +1,3 @@
 function! statusline#terminal#Mode(...) abort
-    return { 'name': 'TERMINAL', 'lmode': expand('%') }
+    return { 'name': 'TERMINAL', 'plugin': expand('%') }
 endfunction

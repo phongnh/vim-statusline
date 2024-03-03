@@ -1,10 +1,7 @@
 function! statusline#sections#Mode(...) abort
     let l:mode = statusline#parts#Integration()
     if len(l:mode)
-        return statusline#Concatenate([
-                    \ l:mode['name'],
-                    \ get(l:mode, 'lmode', ''),
-                    \ ])
+        return l:mode['name']
     endif
 
     return statusline#Concatenate([
@@ -18,7 +15,7 @@ endfunction
 function! statusline#sections#Plugin(...) abort
     let l:mode = statusline#parts#Integration()
     if len(l:mode)
-        return statusline#Prepend(get(l:mode, 'lfill', ''))
+        return statusline#Prepend(get(l:mode, 'plugin', ''))
     endif
     return statusline#Prepend(call('s:RenderPluginSection', a:000))
 endfunction
@@ -48,7 +45,7 @@ endfunction
 function! statusline#sections#Buffer(...) abort
     let l:mode = statusline#parts#Integration()
     if len(l:mode)
-        return get(l:mode, 'rmode', '')
+        return get(l:mode, 'buffer', '')
     endif
     return call('s:RenderBufferSection', a:000)
 endfunction
@@ -60,7 +57,7 @@ endfunction
 function! statusline#sections#Settings(...) abort
     let l:mode = statusline#parts#Integration()
     if len(l:mode)
-        return statusline#Append(get(l:mode, 'rfill', ''))
+        return statusline#Append(get(l:mode, 'settings', ''))
     endif
     return statusline#Append(call('s:RenderSettingsSection', a:000))
 endfunction
@@ -95,7 +92,7 @@ function! statusline#sections#InactiveMode(...) abort
     if len(l:mode)
         return statusline#Concatenate([
                     \ l:mode['name'],
-                    \ get(l:mode, 'lmode_inactive', ''),
+                    \ get(l:mode, 'plugin', ''),
                     \ get(l:mode, 'filename', ''),
                     \ ])
     endif

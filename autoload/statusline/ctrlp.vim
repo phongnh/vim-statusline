@@ -31,28 +31,28 @@ endfunction
 function! statusline#ctrlp#Mode(...) abort
     let result = {
                 \ 'name': 'CtrlP',
-                \ 'rmode': s:statusline_ctrlp.dir,
+                \ 'buffer': s:statusline_ctrlp.dir,
                 \ }
 
     if s:statusline_ctrlp.main
-        let lfill = statusline#Concatenate([
+        let plugin = statusline#Concatenate([
                     \ s:statusline_ctrlp.prev,
                     \ statusline#Wrap(s:statusline_ctrlp.item),
                     \ s:statusline_ctrlp.next,
                     \ ])
 
-        let rfill = statusline#Concatenate([
+        let settings = statusline#Concatenate([
                     \ s:statusline_ctrlp.focus,
                     \ '[' . s:statusline_ctrlp.byfname . ']',
                     \ ], 1)
 
         call extend(result, {
-                    \ 'lfill': lfill,
-                    \ 'rfill': rfill,
+                    \ 'plugin': plugin,
+                    \ 'settings': settings,
                     \ })
     else
         call extend(result, {
-                    \ 'lfill': s:statusline_ctrlp.len,
+                    \ 'plugin': s:statusline_ctrlp.len,
                     \ })
     endif
 

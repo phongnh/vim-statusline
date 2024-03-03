@@ -16,11 +16,9 @@ function! statusline#nrrwrgn#Mode(...) abort
         if len(dict)
             let vmode = { 'v': ' [C]', 'V': '', '': ' [B]' }
             let result['name'] = (dict.multi ? 'Multi' : '') . result['name'] . vmode[dict.visual ? dict.visual : 'V']
-            let result['lmode'] = fnamemodify(dict.fullname, ':~:.') . (dict.multi ? '' : printf(' [%d-%d]', dict.start[1], dict.end[1]))
-            let result['lmode_inactive'] = result['lmode']
+            let result['plugin'] = fnamemodify(dict.fullname, ':~:.') . (dict.multi ? '' : printf(' [%d-%d]', dict.start[1], dict.end[1]))
         elseif get(b:, 'orig_buf', 0)
-            let result['lmode'] = bufname(b:orig_buf)
-            let result['lmode_inactive'] = result['lmode']
+            let result['plugin'] = bufname(b:orig_buf)
         endif
     endif
 

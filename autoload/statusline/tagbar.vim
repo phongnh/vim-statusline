@@ -18,7 +18,7 @@ function! statusline#tagbar#Mode(...) abort
 
     return {
                 \ 'name': s:statusline_tagbar.sort,
-                \ 'lmode': s:statusline_tagbar.fname,
-                \ 'lfill': flags,
+                \ 'plugin': s:statusline_tagbar.fname,
+                \ 'filename': flags,
                 \ }
 endfunction

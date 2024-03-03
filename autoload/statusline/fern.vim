@@ -16,7 +16,7 @@ function! statusline#fern#Mode(...) abort
         let fern_folder = substitute(fern_folder, ';\?\(#.\+\)\?\$\?$', '', '')
         let fern_folder = fnamemodify(fern_folder, ':p:~:.:h')
 
-        let result['lfill'] = fern_folder
+        let result['plugin'] = fern_folder
     endif
 
     return result

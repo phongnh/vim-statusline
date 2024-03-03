@@ -1,3 +1,3 @@
 function! statusline#gitcommit#Mode(...) abort
-    return { 'lfill': statusline#parts#Spell() }
+    return { 'plugin': statusline#parts#Spell() }
 endfunction

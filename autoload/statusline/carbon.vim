@@ -3,7 +3,7 @@ function! statusline#carbon#Mode(...) abort
     let result = {}
 
     if exists('b:carbon')
-        let result['lfill'] = fnamemodify(b:carbon['path'], ':p:~:.:h')
+        let result['plugin'] = fnamemodify(b:carbon['path'], ':p:~:.:h')
     endif
 
     return result
