@@ -12,9 +12,9 @@ endfunction
 
 function! s:TabModified(bufnr) abort
     if getbufvar(a:bufnr, '&modified')
-        return !getbufvar(a:bufnr, '&modifiable') ? '[+-]' : '[+]'
+        return !getbufvar(a:bufnr, '&modifiable') ? '+-' : '+'
     else
-        return !getbufvar(a:bufnr, '&modifiable') ? '[-]' : ''
+        return !getbufvar(a:bufnr, '&modifiable') ? '-' : ''
     endif
 endfunction
 
