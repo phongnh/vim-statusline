@@ -3,7 +3,7 @@ function! s:TabPlaceholder(tab) abort
 endfunction
 
 function! s:TabNumber(n) abort
-    return printf('%d:', a:n)
+    return printf('%d: ', a:n)
 endfunction
 
 function! s:TabReadonly(bufnr) abort
