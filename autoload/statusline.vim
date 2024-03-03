@@ -66,16 +66,11 @@ function! statusline#Group(exp) abort
 endfunction
 
 function! statusline#Wrap(text) abort
-    return printf('%s %s %s', '«', a:text, '»')
-endfunction
-
-function! statusline#ModeConcatenate(parts, ...) abort
-    let separator = get(a:, 1, 0) ? g:statusline_symbols.right_mode_sep : g:statusline_symbols.left_mode_sep
-    return join(filter(copy(a:parts), 'v:val !=# ""'), ' ' . separator . ' ')
+    return empty(a:text) ? '' : printf('%s %s %s', '«', a:text, '»')
 endfunction
 
 function! statusline#Concatenate(parts, ...) abort
-    let separator = get(a:, 1, 0) ? g:statusline_symbols.right_fill_sep : g:statusline_symbols.left_fill_sep
+    let separator = get(a:, 1, 0) ? g:statusline_symbols.right_alt_sep : g:statusline_symbols.left_alt_sep
     return join(filter(copy(a:parts), 'v:val !=# ""'), ' ' . separator . ' ')
 endfunction
 
@@ -205,8 +200,6 @@ function! statusline#Setup() abort
     endif
 
     call extend(g:statusline_symbols, {
-                \ 'left_mode_sep':  g:statusline_symbols.left_alt,
-                \ 'right_mode_sep': g:statusline_symbols.right_alt,
                 \ 'left_sep':       g:statusline_symbols.left,
                 \ 'left_alt_sep':   g:statusline_symbols.left_alt,
                 \ 'right_sep':      g:statusline_symbols.right,

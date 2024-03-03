@@ -1,7 +1,10 @@
 function! statusline#sections#Mode(...) abort
     let l:mode = statusline#parts#Integration()
     if len(l:mode)
-        return statusline#ModeConcatenate([ l:mode['name'], get(l:mode, 'lmode', '') ])
+        return statusline#Concatenate([
+                    \ l:mode['name'],
+                    \ get(l:mode, 'lmode', ''),
+                    \ ])
     endif
 
     return statusline#Concatenate([
@@ -24,7 +27,7 @@ function! s:RenderPluginSection(...) abort
     let l:winnr = get(a:, 1, 0)
 
     if g:statusline_show_git_branch && winwidth(l:winnr) >= g:statusline_winwidth_config.small
-        return statusline#ModeConcatenate([
+        return statusline#Concatenate([
                     \ statusline#git#Branch(),
                     \ statusline#parts#FileName(),
                     \ ])
