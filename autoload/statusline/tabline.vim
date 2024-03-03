@@ -1,47 +1,68 @@
-function! statusline#tabline#Placeholder(tab) abort
-    return statusline#Hi('TabLineSel') . printf('%%%d  %s %%*', a:tab, g:statusline_symbols.ellipsis)
+function! s:TabPlaceholder(tab) abort
+    return statusline#Hi('TabLineSel') . printf('%%%d %s %%*', a:tab, g:statusline_symbols.ellipsis)
 endfunction
 
-function! statusline#tabline#Label(tabnr) abort
-    let tabnr = a:tabnr
-    let winnr = tabpagewinnr(tabnr)
-    let buflist = tabpagebuflist(tabnr)
-    let bufnr = buflist[winnr - 1]
-    let bufname = bufname(bufnr)
+function! s:TabNumber(n) abort
+    return printf('%d:', a:n)
+endfunction
 
-    let label = '%' . tabnr . 'T'
-    let label .= (tabnr == tabpagenr() ? statusline#Hi('TabLineSel') : statusline#Hi('TabLine'))
-    let label .= ' ' . tabnr . ':'
+function! s:TabReadonly(bufnr) abort
+    return getbufvar(a:bufnr, '&readonly') ? g:statusline_symbols.readonly . ' ' : ''
+endfunction
 
-    let dev_icon = ''
-
-    if getbufvar(bufnr, 'buftype') ==# 'nofile'
-        if bufname =~ '\/.'
-            let bufname = substitute(bufname, '.*\/\ze.', '', '')
-        endif
+function! s:TabModified(bufnr) abort
+    if getbufvar(a:bufnr, '&modified')
+        return !getbufvar(a:bufnr, '&modifiable') ? '[+-]' : '[+]'
     else
-        let bufname = fnamemodify(bufname, tabpagenr('$') >= 4 ? ':p:t' : ':p:~:.')
+        return !getbufvar(a:bufnr, '&modifiable') ? '[-]' : ''
+    endif
+endfunction
 
-        if g:statusline_show_devicons
-            let dev_icon = statusline#devicons#FileType(bufname)
-        endif
+function! s:TabBufferType(bufnr) abort
+    let ft = getbufvar(a:bufnr, '&filetype')
+    return strlen(ft) ? ft : getbufvar(a:bufnr, '&buftype')
+endfunction
 
-        if strlen(bufname) > 30
-            if bufname[0] =~ '\~\|/' && g:statusline_shorten_path
-                let bufname = statusline#ShortenPath(bufname)
-            else
-                let bufname = fnamemodify(bufname, ':t')
-            endif
+function s:TabBufferName(bufnr) abort
+    let bufname = bufname(a:bufnr)
+    let buftype = s:TabBufferType(a:bufnr)
+
+    if buftype ==# 'nofile' && bufname =~ '\/.'
+        let bufname = substitute(bufname, '.*\/\ze.', '', '')
+    endif
+
+    if has_key(g:statusline_filetype_modes, buftype)
+        return g:statusline_filetype_modes[buftype]
+    endif
+
+    if has_key(g:statusline_filename_modes, bufname)
+        return g:statusline_filename_modes[bufname]
+    endif
+
+    let bufname = fnamemodify(bufname, tabpagenr('$') >= 4 ? ':p:t' : ':p:~:.')
+
+    if strlen(bufname) > 30
+        if bufname[0] =~ '\~\|/' && g:statusline_shorten_path
+            let bufname = statusline#ShortenPath(bufname)
+        else
+            let bufname = fnamemodify(bufname, ':t')
         endif
     endif
 
-    if empty(bufname)
-        let bufname = '[No Name]'
+    if bufname =~# '^\[preview'
+        return 'Preview'
+    else
+        return join(filter([empty(bufname) ? '[No Name]' : bufname, s:TabModified(a:bufnr)], 'v:val !=# ""'), g:statusline_symbols.space)
     endif
+endfunction
 
-    let label .= ' ' . bufname . (getbufvar(bufnr, '&modified') ? '[+]' : '') . dev_icon . ' '
-
-    return label
+function! s:TabName(tabnr) abort
+    let winnr = tabpagewinnr(a:tabnr)
+    let bufnr = tabpagebuflist(a:tabnr)[winnr - 1]
+    let label = '%' . a:tabnr . 'T'
+    let label .= (a:tabnr == tabpagenr() ? statusline#Hi('TabLineSel') : statusline#Hi('TabLine'))
+    let label .= join(filter([s:TabNumber(a:tabnr), s:TabReadonly(bufnr), s:TabBufferName(bufnr)], '!empty(v:val)'),  g:statusline_symbols.space)
+    return g:statusline_symbols.space . label . g:statusline_symbols.space
 endfunction
 
 function! statusline#tabline#Init() abort
@@ -53,7 +74,7 @@ function! statusline#tabline#Init() abort
 
     if tab_count <= max_tab_count
         for i in range(1, tab_count)
-            let stl .= statusline#tabline#Label(i)
+            let stl .= s:TabName(i)
         endfor
     else
         let tabs = range(1, tab_count)
@@ -73,19 +94,19 @@ function! statusline#tabline#Init() abort
         endif
 
         if current_index == (tab_count - 1)
-            let stl .= statusline#tabline#Placeholder(start_index - 1)
+            let stl .= s:TabPlaceholder(start_index - 1)
         elseif start_index > 0
-            let stl .= statusline#tabline#Placeholder(start_index + 1)
+            let stl .= s:TabPlaceholder(start_index + 1)
         endif
 
         let displayable_tabs = tabs[start_index:end_index]
 
         for i in displayable_tabs
-            let stl .= statusline#tabline#Label(i)
+            let stl .= s:TabName(i)
         endfor
 
         if current_index < (tab_count - 1) && end_index < (tab_count - 1)
-            let stl .= statusline#tabline#Placeholder(end_index + 1)
+            let stl .= s:TabPlaceholder(end_index + 1)
         endif
     endif
 
