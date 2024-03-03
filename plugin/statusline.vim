@@ -23,7 +23,9 @@ function! StatusLine(winnum) abort
         return join([
                     \ statusline#Hi('StatusLine'),
                     \ '%<',
+                    \ statusline#Hi('StatusLineMode'),
                     \ statusline#ModeGroup(printf('statusline#sections#Mode(%d)', a:winnum)),
+                    \ statusline#Hi('StatusLine'),
                     \ statusline#Group(printf('statusline#sections#Plugin(%d)', a:winnum)),
                     \ statusline#Group(printf('statusline#sections#FileName(%d)', a:winnum)),
                     \ '%=',
