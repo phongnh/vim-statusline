@@ -221,6 +221,8 @@ function! statusline#Setup() abort
 endfunction
 
 function! statusline#Init() abort
+    call statusline#colors#Init()
+
     " CtrlP Integration
     let g:ctrlp_status_func = {
                 \ 'main': 'statusline#ctrlp#MainStatus',
