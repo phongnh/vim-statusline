@@ -37,22 +37,6 @@ function! statusline#FormatFileName(fname, ...) abort
     return l:path
 endfunction
 
-function! statusline#IsClipboardEnabled() abort
-    return match(&clipboard, 'unnamed') > -1
-endfunction
-
-function! statusline#IsCompact(...) abort
-    let l:winnr = get(a:, 1, 0)
-    return winwidth(l:winnr) <= g:statusline_winwidth_config.compact ||
-                \ count([
-                \   statusline#IsClipboardEnabled(),
-                \   &paste,
-                \   &spell,
-                \   &bomb,
-                \   !&eol,
-                \ ], 1) > 1
-endfunction
-
 function! statusline#Hi(section) abort
     return printf('%%#%s#', a:section)
 endfunction
@@ -92,15 +76,6 @@ function! statusline#Concatenate(parts, ...) abort
     return join(filter(copy(a:parts), 'v:val !=# ""'), g:statusline_symbols.space . sep . g:statusline_symbols.space)
 endfunction
 
-function! statusline#BufferType() abort
-    return strlen(&filetype) ? &filetype : &buftype
-endfunction
-
-function! statusline#FileName() abort
-    let fname = expand('%')
-    return strlen(fname) ? fnamemodify(fname, ':~:.') : '[No Name]'
-endfunction
-
 function! statusline#Refresh() abort
     for nr in range(1, winnr('$'))
         call setwinvar(nr, '&statusline', '%!StatusLine(' . nr . ')')
@@ -110,17 +85,11 @@ endfunction
 function! statusline#Setup() abort
     " Settings
     let g:statusline_powerline_fonts       = get(g:, 'statusline_powerline_fonts', 0)
-    let g:statusline_mode                  = get(g:, 'statusline_mode', 'default')
     let g:statusline_shorten_path          = get(g:, 'statusline_shorten_path', 0)
     let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
     let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
     let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 1)
     let g:statusline_show_vim_logo         = get(g:, 'statusline_show_vim_logo', 1)
-
-    if g:statusline_mode ==? 'minimal'
-        let g:statusline_show_git_branch = 0
-        let g:statusline_show_devicons   = 0
-    endif
 
     " Improved Model Labels
     let g:statusline_mode_labels = {

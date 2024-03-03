@@ -1,5 +1,30 @@
+function! s:BufferType() abort
+    return strlen(&filetype) ? &filetype : &buftype
+endfunction
+
+function! s:FileName() abort
+    let fname = expand('%')
+    return strlen(fname) ? fnamemodify(fname, ':~:.') : '[No Name]'
+endfunction
+
+function! s:IsClipboardEnabled() abort
+    return match(&clipboard, 'unnamed') > -1
+endfunction
+
+function! s:IsCompact(...) abort
+    let l:winnr = get(a:, 1, 0)
+    return winwidth(l:winnr) <= g:statusline_winwidth_config.compact ||
+                \ count([
+                \   s:IsClipboardEnabled(),
+                \   &paste,
+                \   &spell,
+                \   &bomb,
+                \   !&eol,
+                \ ], 1) > 1
+endfunction
+
 function! statusline#parts#Mode() abort
-    if statusline#IsCompact()
+    if s:IsCompact()
         return get(g:statusline_short_mode_labels, mode(), '')
     else
         return get(g:statusline_mode_labels, mode(), '')
@@ -7,7 +32,7 @@ function! statusline#parts#Mode() abort
 endfunction
 
 function! statusline#parts#Clipboard() abort
-    return statusline#IsClipboardEnabled() ? g:statusline_symbols.clipboard : ''
+    return s:IsClipboardEnabled() ? g:statusline_symbols.clipboard : ''
 endfunction
 
 function! statusline#parts#Paste() abort
@@ -20,7 +45,7 @@ endfunction
 
 function! statusline#parts#Indentation(...) abort
     let l:shiftwidth = exists('*shiftwidth') ? shiftwidth() : &shiftwidth
-    let compact = get(a:, 1, 0)
+    let compact = get(a:, 1, s:IsCompact())
     if compact
         return printf(&expandtab ? 'SPC: %d' : 'TAB: %d', l:shiftwidth)
     else
@@ -28,11 +53,11 @@ function! statusline#parts#Indentation(...) abort
     endif
 endfunction
 
-function! statusline#parts#Readonly(...) abort
+function! s:ReadonlyStatus(...) abort
     return &readonly ? g:statusline_symbols.readonly . ' ' : ''
 endfunction
 
-function! statusline#parts#Modified(...) abort
+function! s:ModifiedStatus(...) abort
     if &modified
         return !&modifiable ? '[+-]' : '[+]'
     else
@@ -69,15 +94,15 @@ function! statusline#parts#FileEncodingAndFormat() abort
 endfunction
 
 function! statusline#parts#FileType(...) abort
-    return statusline#BufferType() . statusline#devicons#FileType(expand('%'))
+    return s:BufferType() . statusline#devicons#FileType(expand('%'))
 endfunction
 
 function! statusline#parts#FileName(...) abort
-    return statusline#parts#Readonly() . statusline#FormatFileName(statusline#FileName()) . statusline#parts#Modified()
+    return s:ReadonlyStatus() . statusline#FormatFileName(s:FileName()) . s:ModifiedStatus()
 endfunction
 
 function! statusline#parts#InactiveFileName(...) abort
-    return statusline#parts#Readonly() . statusline#FileName() . statusline#parts#Modified()
+    return s:ReadonlyStatus() . s:FileName() . s:ModifiedStatus()
 endfunction
 
 " Alternate status dictionaries
@@ -175,7 +200,7 @@ function! statusline#parts#Integration() abort
         return statusline#nrrwrgn#Mode()
     endif
 
-    let ft = statusline#BufferType()
+    let ft = s:BufferType()
     if has_key(g:statusline_filetype_modes, ft)
         let result = { 'name': g:statusline_filetype_modes[ft] }
 

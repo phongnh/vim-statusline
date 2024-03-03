@@ -64,12 +64,11 @@ endfunction
 
 function! s:RenderSettingsSection(...) abort
     let l:winnr = get(a:, 1, 0)
-    if winwidth(0) <= g:statusline_winwidth_config.compact
+    if winwidth(l:winnr) <= g:statusline_winwidth_config.compact
         return ''
     endif
-    let l:compact = statusline#IsCompact(l:winnr)
     return statusline#Concatenate([
-                \ statusline#parts#Indentation(l:compact),
+                \ statusline#parts#Indentation(),
                 \ statusline#parts#FileEncodingAndFormat(),
                 \ ], 1)
 endfunction
