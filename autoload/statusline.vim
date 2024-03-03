@@ -129,7 +129,7 @@ function! statusline#Setup() abort
     " Window width
     let g:statusline_winwidth_config = extend({
                 \ 'compact': 60,
-                \ 'small':   80,
+                \ 'default': 90,
                 \ 'normal':  120,
                 \ }, get(g:, 'statusline_winwidth_config', {}))
 
