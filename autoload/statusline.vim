@@ -154,6 +154,8 @@ function! statusline#Setup() abort
                 \ 'clipboard': '🅒 ',
                 \ 'paste':     '🅟 ',
                 \ 'ellipsis':  '…',
+                \ 'left':      '→',
+                \ 'right':     '←',
                 \ }
 
     let g:statusline_show_devicons = g:statusline_show_devicons && statusline#devicons#Detect()
@@ -182,11 +184,6 @@ function! statusline#Setup() abort
     if g:statusline_show_devicons && g:statusline_show_vim_logo
         let g:statusline_symbols.tabs = "\ue7c5 "
     endif
-
-    call extend(g:statusline_symbols, {
-                \ 'left':  '→',
-                \ 'right': '←',
-                \ })
 endfunction
 
 function! statusline#Init() abort
