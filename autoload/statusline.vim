@@ -190,25 +190,31 @@ function! statusline#Init() abort
     call statusline#colors#Init()
 
     " CtrlP Integration
-    let g:ctrlp_status_func = {
-                \ 'main': 'statusline#ctrlp#MainStatus',
-                \ 'prog': 'statusline#ctrlp#ProgressStatus',
-                \ }
-
-    " Tagbar Integration
-    let g:tagbar_status_func = 'statusline#tagbar#Status'
-
-    " ZoomWin Integration
-    let g:statusline_zoomwin_funcref = []
-
-    if exists('g:ZoomWin_funcref')
-        if type(g:ZoomWin_funcref) == v:t_func
-            let g:statusline_zoomwin_funcref = [g:ZoomWin_funcref]
-        elseif type(g:ZoomWin_funcref) == v:t_func
-            let g:statusline_zoomwin_funcref = g:ZoomWin_funcref
-        endif
-        let g:statusline_zoomwin_funcref = uniq(copy(g:statusline_zoomwin_funcref))
+    if exists(':CtrlP') == 2
+        let g:ctrlp_status_func = {
+                    \ 'main': 'statusline#ctrlp#MainStatus',
+                    \ 'prog': 'statusline#ctrlp#ProgressStatus',
+                    \ }
     endif
 
-    let g:ZoomWin_funcref = function('statusline#zoomwin#Status')
+    " Tagbar Integration
+    if exists(':Tagbar') == 2
+        let g:tagbar_status_func = 'statusline#tagbar#Status'
+    endif
+
+    " ZoomWin Integration
+    if exists(':ZoomWin') == 2
+        let g:statusline_zoomwin_funcref = []
+
+        if exists('g:ZoomWin_funcref')
+            if type(g:ZoomWin_funcref) == v:t_func
+                let g:statusline_zoomwin_funcref = [g:ZoomWin_funcref]
+            elseif type(g:ZoomWin_funcref) == v:t_func
+                let g:statusline_zoomwin_funcref = g:ZoomWin_funcref
+            endif
+            let g:statusline_zoomwin_funcref = uniq(copy(g:statusline_zoomwin_funcref))
+        endif
+
+        let g:ZoomWin_funcref = function('statusline#zoomwin#Status')
+    endif
 endfunction
