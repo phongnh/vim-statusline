@@ -140,7 +140,7 @@ function! statusline#Setup() abort
     let g:qf_disable_statusline = 1
 
     " Symbols: https://en.wikipedia.org/wiki/Enclosed_Alphanumerics
-    let g:statusline_symbols = {
+    let g:statusline_symbols = extend({
                 \ 'dos':       '[dos]',
                 \ 'mac':       '[mac]',
                 \ 'unix':      '[unix]',
@@ -156,7 +156,7 @@ function! statusline#Setup() abort
                 \ 'ellipsis':  '…',
                 \ 'left':      '→',
                 \ 'right':     '←',
-                \ }
+                \ }, get(g:, 'statusline_symbols', {}))
 
     let g:statusline_show_devicons = g:statusline_show_devicons && statusline#devicons#Detect()
 
