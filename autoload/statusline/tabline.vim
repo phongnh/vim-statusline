@@ -62,8 +62,8 @@ function! s:TabName(tabnr) abort
     let bufnr = tabpagebuflist(a:tabnr)[winnr - 1]
     let label = '%' . a:tabnr . 'T'
     let label .= (a:tabnr == tabpagenr() ? statusline#Hi('TabLineSel') : statusline#Hi('TabLine'))
-    let label .= s:TabNumber(a:tabnr) . s:TabReadonly(bufnr) . s:TabBufferName(bufnr)
-    return g:statusline_symbols.space . label . g:statusline_symbols.space
+    let label .= g:statusline_symbols.space . s:TabNumber(a:tabnr) . s:TabReadonly(bufnr) . s:TabBufferName(bufnr) . g:statusline_symbols.space
+    return label
 endfunction
 
 function! s:GetMaxTabs() abort
@@ -119,7 +119,8 @@ function! statusline#tabline#Init() abort
     let stl .= statusline#Hi('TabLineFill') . '%='
 
     if g:statusline_show_tab_close_button
-        let stl .= statusline#Hi('TabLineSel') . '%999X  X  '
+        " let stl .= statusline#Hi('TabLineSel') . '%999X  X  '
+        let stl .= statusline#Hi('TabLineClose') . '%999X  ×  '
     endif
 
     return stl
