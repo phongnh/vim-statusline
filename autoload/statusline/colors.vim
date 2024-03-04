@@ -29,6 +29,8 @@ endfunction
 function! statusline#colors#Init() abort
     highlight! StatusLineNone guibg=NONE guifg=NONE ctermbg=NONE ctermfg=NONE
 
+    highlight! link TabLineClose TabLineSel
+
     let l:status_line = statusline#colors#Extract('StatusLine')
     call statusline#colors#Highlight('StatusLineMode', {
                 \ 'ctermbg': l:status_line['cterm_reverse'] ? l:status_line['ctermfg'] : l:status_line['ctermbg'],
