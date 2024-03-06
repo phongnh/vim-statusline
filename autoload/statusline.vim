@@ -87,8 +87,8 @@ function! statusline#Setup() abort
     let g:statusline_powerline_fonts       = get(g:, 'statusline_powerline_fonts', 0)
     let g:statusline_shorten_path          = get(g:, 'statusline_shorten_path', 0)
     let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
-    let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 1)
-    let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 1)
+    let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 0)
+    let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 0)
     let g:statusline_show_vim_logo         = get(g:, 'statusline_show_vim_logo', 1)
 
     " Improved Model Labels
