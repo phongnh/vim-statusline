@@ -65,11 +65,11 @@ function! s:ModifiedStatus(...) abort
     endif
 endfunction
 
-function! statusline#parts#SimpleLineInfo(...) abort
+function! s:SimpleLineInfo(...) abort
     return printf('%3d:%-3d', line('.'), col('.'))
 endfunction
 
-function! statusline#parts#LineInfo(...) abort
+function! s:FullLineInfo(...) abort
     if line('w0') == 1 && line('w$') == line('$')
         let l:percent = 'All'
     elseif line('w0') == 1
@@ -81,6 +81,10 @@ function! statusline#parts#LineInfo(...) abort
     endif
 
     return printf('%4d:%-3d %3s', line('.'), col('.'), l:percent)
+endfunction
+
+function! statusline#parts#LineInfo() abort
+    return ''
 endfunction
 
 function! statusline#parts#FileEncodingAndFormat() abort
@@ -218,4 +222,26 @@ function! statusline#parts#Integration() abort
     endif
 
     return {}
+endfunction
+
+function! statusline#parts#GitBranch(...) abort
+    return ''
+endfunction
+
+function! statusline#parts#Init() abort
+    if g:statusline_show_git_branch > 0
+        function! statusline#parts#GitBranch(...) abort
+            return statusline#git#Branch()
+        endfunction
+    endif
+
+    if g:statusline_show_linenr > 1
+        function! statusline#parts#LineInfo(...) abort
+            return call('s:FullLineInfo', a:000) . ' '
+        endfunction
+    elseif g:statusline_show_linenr > 0
+        function! statusline#parts#LineInfo(...) abort
+            return call('s:SimpleLineInfo', a:000) . ' '
+        endfunction
+    endif
 endfunction

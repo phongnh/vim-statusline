@@ -23,8 +23,8 @@ endfunction
 function! s:RenderPluginSection(...) abort
     let l:winnr = get(a:, 1, 0)
 
-    if g:statusline_show_git_branch && winwidth(l:winnr) >= g:statusline_winwidth_config.normal
-        return statusline#git#Branch()
+    if winwidth(l:winnr) >= g:statusline_winwidth_config.normal
+        return statusline#parts#GitBranch()
     endif
 
     return ''
@@ -78,11 +78,15 @@ function! statusline#sections#Info(...) abort
     if len(l:mode)
         return statusline#Append(get(l:mode, 'info', ''))
     endif
-    return statusline#Append(call('s:RenderInfoSection', a:000))
+    return call('s:RenderInfoSection', a:000)
 endfunction
 
 function! s:RenderInfoSection(...) abort
-    return ''
+    let l:winnr = get(a:, 1, 0)
+    if winwidth(l:winnr) <= g:statusline_winwidth_config.compact
+        return ''
+    endif
+    return statusline#parts#LineInfo()
 endfunction
 
 function! statusline#sections#InactiveMode(...) abort
