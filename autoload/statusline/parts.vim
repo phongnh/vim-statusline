@@ -110,6 +110,7 @@ let g:statusline_filename_modes = {
             \ 'ControlP':             'CtrlP',
             \ '__CtrlSF__':           'CtrlSF',
             \ '__CtrlSFPreview__':    'Preview',
+            \ '__flygrep__':          'FlyGrep',
             \ '__Tagbar__':           'Tagbar',
             \ '__Gundo__':            'Gundo',
             \ '__Gundo_Preview__':    'Gundo Preview',
@@ -157,6 +158,7 @@ let g:statusline_filetype_modes = {
             \ 'agit':              'Agit',
             \ 'agit_diff':         'Agit Diff',
             \ 'agit_stat':         'Agit Stat',
+            \ 'SpaceVimFlyGrep':   'FlyGrep',
             \ }
 
 let g:statusline_plugin_modes = {
@@ -176,6 +178,7 @@ let g:statusline_plugin_modes = {
             \ 'terminal':        'statusline#terminal#Mode',
             \ 'help':            'statusline#help#Mode',
             \ 'qf':              'statusline#quickfix#Mode',
+            \ 'SpaceVimFlyGrep': 'statusline#flygrep#Mode',
             \ }
 
 function! statusline#parts#Integration() abort
@@ -186,9 +189,10 @@ function! statusline#parts#Integration() abort
 
         let l:plugin_modes = {
                     \ 'ControlP':          'statusline#ctrlp#Mode',
-                    \ '__Tagbar__':        'statusline#tagbar#Mode',
                     \ '__CtrlSF__':        'statusline#ctrlsf#Mode',
                     \ '__CtrlSFPreview__': 'statusline#ctrlsf#PreviewMode',
+                    \ '__flygrep__':       'statusline#flygrep#Mode',
+                    \ '__Tagbar__':        'statusline#tagbar#Mode',
                     \ }
 
         if has_key(l:plugin_modes, fname)
