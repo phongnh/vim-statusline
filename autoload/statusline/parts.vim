@@ -116,7 +116,7 @@ function! statusline#parts#Integration() abort
         let result = { 'name': g:statusline_filename_modes[fname] }
 
         if has_key(g:statusline_filename_integrations, fname)
-            return extend(result, function(l:plugin_modes[fname])())
+            return extend(result, function(g:statusline_filename_integrations[fname])())
         endif
 
         return result
