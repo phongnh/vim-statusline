@@ -235,7 +235,15 @@ function! statusline#Setup() abort
                 \ 'SpaceVimFlyGrep':   'FlyGrep',
                 \ }
 
-    let g:statusline_plugin_modes = {
+    let g:statusline_filename_integrations = {
+                \ 'ControlP':          'statusline#ctrlp#Mode',
+                \ '__CtrlSF__':        'statusline#ctrlsf#Mode',
+                \ '__CtrlSFPreview__': 'statusline#ctrlsf#PreviewMode',
+                \ '__flygrep__':       'statusline#flygrep#Mode',
+                \ '__Tagbar__':        'statusline#tagbar#Mode',
+                \ }
+
+    let g:statusline_filetype_integrations = {
                 \ 'ctrlp':           'statusline#ctrlp#Mode',
                 \ 'netrw':           'statusline#netrw#Mode',
                 \ 'dirvish':         'statusline#dirvish#Mode',

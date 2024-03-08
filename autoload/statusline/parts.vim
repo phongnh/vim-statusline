@@ -115,15 +115,7 @@ function! statusline#parts#Integration() abort
     if has_key(g:statusline_filename_modes, fname)
         let result = { 'name': g:statusline_filename_modes[fname] }
 
-        let l:plugin_modes = {
-                    \ 'ControlP':          'statusline#ctrlp#Mode',
-                    \ '__CtrlSF__':        'statusline#ctrlsf#Mode',
-                    \ '__CtrlSFPreview__': 'statusline#ctrlsf#PreviewMode',
-                    \ '__flygrep__':       'statusline#flygrep#Mode',
-                    \ '__Tagbar__':        'statusline#tagbar#Mode',
-                    \ }
-
-        if has_key(l:plugin_modes, fname)
+        if has_key(g:statusline_filename_integrations, fname)
             return extend(result, function(l:plugin_modes[fname])())
         endif
 
@@ -138,8 +130,8 @@ function! statusline#parts#Integration() abort
     if has_key(g:statusline_filetype_modes, ft)
         let result = { 'name': g:statusline_filetype_modes[ft] }
 
-        if has_key(g:statusline_plugin_modes, ft)
-            return extend(result, function(g:statusline_plugin_modes[ft])())
+        if has_key(g:statusline_filetype_integrations, ft)
+            return extend(result, function(g:statusline_filetype_integrations[ft])())
         endif
 
         return result
