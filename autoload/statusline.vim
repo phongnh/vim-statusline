@@ -185,6 +185,82 @@ function! statusline#Setup() abort
     if g:statusline_show_devicons && g:statusline_show_vim_logo
         let g:statusline_symbols.tabs = "\ue7c5 "
     endif
+
+    " Alternate status dictionaries
+    let g:statusline_filename_modes = {
+                \ 'ControlP':             'CtrlP',
+                \ '__CtrlSF__':           'CtrlSF',
+                \ '__CtrlSFPreview__':    'Preview',
+                \ '__flygrep__':          'FlyGrep',
+                \ '__Tagbar__':           'Tagbar',
+                \ '__Gundo__':            'Gundo',
+                \ '__Gundo_Preview__':    'Gundo Preview',
+                \ '__Mundo__':            'Mundo',
+                \ '__Mundo_Preview__':    'Mundo Preview',
+                \ '[BufExplorer]':        'BufExplorer',
+                \ '[Command Line]':       'Command Line',
+                \ '[Plugins]':            'Plugins',
+                \ '__committia_status__': 'Committia Status',
+                \ '__committia_diff__':   'Committia Diff',
+                \ '__doc__':              'Document',
+                \ '__LSP_SETTINGS__':     'LSP Settings',
+                \ }
+
+    let g:statusline_filetype_modes = {
+                \ 'netrw':             'Netrw',
+                \ 'molder':            'Molder',
+                \ 'dirvish':           'Dirvish',
+                \ 'vaffle':            'Vaffle',
+                \ 'nerdtree':          'NERDTree',
+                \ 'fern':              'Fern',
+                \ 'neo-tree':          'NeoTree',
+                \ 'carbon.explorer':   'Carbon',
+                \ 'oil':               'Oil',
+                \ 'NvimTree':          'NvimTree',
+                \ 'CHADTree':          'CHADTree',
+                \ 'LuaTree':           'LuaTree',
+                \ 'Mundo':             'Mundo',
+                \ 'MundoDiff':         'Mundo Preview',
+                \ 'startify':          'Startify',
+                \ 'alpha':             'Alpha',
+                \ 'tagbar':            'Tagbar',
+                \ 'vista':             'Vista',
+                \ 'vista_kind':        'Vista',
+                \ 'vim-plug':          'Plugins',
+                \ 'terminal':          'TERMINAL',
+                \ 'help':              'HELP',
+                \ 'qf':                'Quickfix',
+                \ 'godoc':             'GoDoc',
+                \ 'gedoc':             'GeDoc',
+                \ 'gitcommit':         'Commit Message',
+                \ 'fugitiveblame':     'FugitiveBlame',
+                \ 'gitmessengerpopup': 'Git Messenger',
+                \ 'GV':                'GV',
+                \ 'agit':              'Agit',
+                \ 'agit_diff':         'Agit Diff',
+                \ 'agit_stat':         'Agit Stat',
+                \ 'SpaceVimFlyGrep':   'FlyGrep',
+                \ }
+
+    let g:statusline_plugin_modes = {
+                \ 'ctrlp':           'statusline#ctrlp#Mode',
+                \ 'netrw':           'statusline#netrw#Mode',
+                \ 'dirvish':         'statusline#dirvish#Mode',
+                \ 'molder':          'statusline#molder#Mode',
+                \ 'vaffle':          'statusline#vaffle#Mode',
+                \ 'fern':            'statusline#fern#Mode',
+                \ 'carbon.explorer': 'statusline#carbon#Mode',
+                \ 'neo-tree':        'statusline#neotree#Mode',
+                \ 'oil':             'statusline#oil#Mode',
+                \ 'tagbar':          'statusline#tagbar#Mode',
+                \ 'vista_kind':      'statusline#vista#Mode',
+                \ 'vista':           'statusline#vista#Mode',
+                \ 'gitcommit':       'statusline#gitcommit#Mode',
+                \ 'terminal':        'statusline#terminal#Mode',
+                \ 'help':            'statusline#help#Mode',
+                \ 'qf':              'statusline#quickfix#Mode',
+                \ 'SpaceVimFlyGrep': 'statusline#flygrep#Mode',
+                \ }
 endfunction
 
 function! statusline#Init() abort
