@@ -89,8 +89,7 @@ function! statusline#Setup() abort
     let g:statusline_show_tab_close_button = get(g:, 'statusline_show_tab_close_button', 0)
     let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 0)
     let g:statusline_show_linenr           = get(g:, 'statusline_show_linenr', 0)
-    let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 0)
-    let g:statusline_show_vim_logo         = get(g:, 'statusline_show_vim_logo', 1)
+    let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 0) && statusline#devicons#Detect()
 
     " Improved Model Labels
     let g:statusline_mode_labels = {
@@ -159,8 +158,6 @@ function! statusline#Setup() abort
                 \ 'right':     '←',
                 \ }, get(g:, 'statusline_symbols', {}))
 
-    let g:statusline_show_devicons = g:statusline_show_devicons && statusline#devicons#Detect()
-
     if g:statusline_powerline_fonts || g:statusline_show_devicons
         " Powerline Symbols
         call extend(g:statusline_symbols, {
@@ -172,6 +169,7 @@ function! statusline#Setup() abort
 
     if g:statusline_show_devicons
         call extend(g:statusline_symbols, {
+                    \ 'tabs':  "\ue7c5 "
                     \ 'bomb':  "\ue287 ",
                     \ 'noeol': "\ue293 ",
                     \ 'dos':   "\ue70f",
@@ -179,11 +177,6 @@ function! statusline#Setup() abort
                     \ 'unix':  "\ue712",
                     \ })
         let g:statusline_symbols.unix = '[unix]'
-    endif
-
-    " Show Vim Logo in Tabline
-    if g:statusline_show_devicons && g:statusline_show_vim_logo
-        let g:statusline_symbols.tabs = "\ue7c5 "
     endif
 
     " Alternate status dictionaries
