@@ -169,7 +169,7 @@ function! statusline#Setup() abort
 
     if g:statusline_show_devicons
         call extend(g:statusline_symbols, {
-                    \ 'tabs':  "\ue7c5 "
+                    \ 'tabs':  "\ue7c5 ",
                     \ 'bomb':  "\ue287 ",
                     \ 'noeol': "\ue293 ",
                     \ 'dos':   "\ue70f",
