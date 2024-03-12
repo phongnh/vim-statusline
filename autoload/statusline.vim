@@ -181,6 +181,7 @@ function! statusline#Setup() abort
 
     " Alternate status dictionaries
     let g:statusline_filename_modes = {
+                \ 'NetrwMessage':         'NetrwMessage',
                 \ 'ControlP':             'CtrlP',
                 \ '__CtrlSF__':           'CtrlSF',
                 \ '__CtrlSFPreview__':    'Preview',
