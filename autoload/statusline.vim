@@ -90,6 +90,7 @@ function! statusline#Setup() abort
     let g:statusline_show_git_branch       = get(g:, 'statusline_show_git_branch', 0)
     let g:statusline_show_linenr           = get(g:, 'statusline_show_linenr', 0)
     let g:statusline_show_devicons         = get(g:, 'statusline_show_devicons', 0) && statusline#devicons#Detect()
+    let g:statusline_unicode_symbols       = get(g:, 'statusline_unicode_symbols', g:statusline_show_devicons)
 
     " Improved Model Labels
     let g:statusline_mode_labels = {
@@ -146,17 +147,32 @@ function! statusline#Setup() abort
                 \ 'unix':      '[unix]',
                 \ 'tabs':      'TABS',
                 \ 'space':     ' ',
-                \ 'linenr':    '☰',
-                \ 'branch':    '⎇ ',
+                \ 'readonly':  '[RO]',
+                \ 'bomb':      '[B]',
+                \ 'noeol':     '[!E]',
+                \ 'clipboard': '[C]',
+                \ 'paste':     '[P]',
+                \ 'linenr':    '',
+                \ 'brahch':    '',
+                \ 'ellipsis':  '',
+                \ 'left':      '|',
+                \ 'right':     '|',
+                \ }, get(g:, 'statusline_symbols', {}))
+
+    if g:statusline_unicode_symbols
+        call extend(g:statusline_symbols, {
                 \ 'readonly':  '',
                 \ 'bomb':      '🅑 ',
                 \ 'noeol':     '∉ ',
                 \ 'clipboard': '🅒 ',
                 \ 'paste':     '🅟 ',
+                \ 'linenr':    '☰',
+                \ 'branch':    '⎇ ',
                 \ 'ellipsis':  '…',
                 \ 'left':      '→',
                 \ 'right':     '←',
-                \ }, get(g:, 'statusline_symbols', {}))
+                \ })
+    endif
 
     if g:statusline_powerline_fonts || g:statusline_show_devicons
         " Powerline Symbols
@@ -164,6 +180,8 @@ function! statusline#Setup() abort
                     \ 'linenr':   "\ue0a1",
                     \ 'branch':   "\ue0a0",
                     \ 'readonly': "\ue0a2",
+                    \ 'left':     '→',
+                    \ 'right':    '←',
                     \ })
     endif
 
