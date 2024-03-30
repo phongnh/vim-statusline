@@ -127,6 +127,15 @@ function! statusline#parts#Integration() abort
     endif
 
     let ft = s:BufferType()
+
+    if ft ==# 'undotree' && exists('*t:undotree.GetStatusLine')
+        return statusline#undotree#Mode()
+    endif
+
+    if ft ==# 'diff' && exists('*t:diffpanel.GetStatusLine')
+        return statusline#undotree#DiffStatus()
+    endif
+
     if has_key(g:statusline_filetype_modes, ft)
         let result = { 'name': g:statusline_filetype_modes[ft] }
 
