@@ -65,6 +65,10 @@ function! s:ModifiedStatus(...) abort
     endif
 endfunction
 
+function! s:ZoomedStatus(...) abort
+    return g:statusline_zoomed ? '[Z]' : ''
+endfunction
+
 function! s:SimpleLineInfo(...) abort
     return printf('%3d:%-3d', line('.'), col('.'))
 endfunction
@@ -102,7 +106,7 @@ function! statusline#parts#FileType(...) abort
 endfunction
 
 function! statusline#parts#FileName(...) abort
-    return s:ReadonlyStatus() . statusline#FormatFileName(s:FileName()) . s:ModifiedStatus()
+    return s:ReadonlyStatus() . statusline#FormatFileName(s:FileName()) . s:ModifiedStatus() . s:ZoomedStatus()
 endfunction
 
 function! statusline#parts#InactiveFileName(...) abort

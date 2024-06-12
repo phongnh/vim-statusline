@@ -5,5 +5,6 @@ function! statusline#zoomwin#Status(zoomstate) abort
             call F(a:zoomstate)
         endif
     endfor
+    let g:statusline_zoomed = a:zoomstate
     call statusline#Refresh()
 endfunction

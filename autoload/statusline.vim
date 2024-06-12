@@ -287,6 +287,8 @@ function! statusline#Init() abort
     endif
 
     " ZoomWin Integration
+    let g:statusline_zoomed = 0
+
     if exists(':ZoomWin') == 2
         let g:statusline_zoomwin_funcref = []
 
