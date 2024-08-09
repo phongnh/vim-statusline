@@ -1,3 +1,93 @@
+" Alternate status dictionaries
+let s:statusline_filename_modes = {
+            \ 'NetrwMessage':         'NetrwMessage',
+            \ 'ControlP':             'CtrlP',
+            \ '__CtrlSF__':           'CtrlSF',
+            \ '__CtrlSFPreview__':    'Preview',
+            \ '__flygrep__':          'FlyGrep',
+            \ '__Tagbar__':           'Tagbar',
+            \ '__Gundo__':            'Gundo',
+            \ '__Gundo_Preview__':    'Gundo Preview',
+            \ '__Mundo__':            'Mundo',
+            \ '__Mundo_Preview__':    'Mundo Preview',
+            \ '[BufExplorer]':        'BufExplorer',
+            \ '[Command Line]':       'Command Line',
+            \ '[Plugins]':            'Plugins',
+            \ '__committia_status__': 'Committia Status',
+            \ '__committia_diff__':   'Committia Diff',
+            \ '__doc__':              'Document',
+            \ '__LSP_SETTINGS__':     'LSP Settings',
+            \ }
+
+let s:statusline_filetype_modes = {
+            \ 'simplebuffer':      'SimpleBuffer',
+            \ 'netrw':             'Netrw',
+            \ 'molder':            'Molder',
+            \ 'dirvish':           'Dirvish',
+            \ 'vaffle':            'Vaffle',
+            \ 'nerdtree':          'NERDTree',
+            \ 'fern':              'Fern',
+            \ 'neo-tree':          'NeoTree',
+            \ 'carbon.explorer':   'Carbon',
+            \ 'oil':               'Oil',
+            \ 'NvimTree':          'NvimTree',
+            \ 'CHADTree':          'CHADTree',
+            \ 'LuaTree':           'LuaTree',
+            \ 'Mundo':             'Mundo',
+            \ 'MundoDiff':         'Mundo Preview',
+            \ 'undotree':          'Undo',
+            \ 'diff':              'Diff',
+            \ 'startify':          'Startify',
+            \ 'alpha':             'Alpha',
+            \ 'dashboard':         'Dashboard',
+            \ 'ministarter':       'Starter',
+            \ 'tagbar':            'Tagbar',
+            \ 'vista':             'Vista',
+            \ 'vista_kind':        'Vista',
+            \ 'vim-plug':          'Plugins',
+            \ 'terminal':          'TERMINAL',
+            \ 'help':              'HELP',
+            \ 'qf':                'Quickfix',
+            \ 'godoc':             'GoDoc',
+            \ 'gedoc':             'GeDoc',
+            \ 'gitcommit':         'Commit Message',
+            \ 'fugitiveblame':     'FugitiveBlame',
+            \ 'gitmessengerpopup': 'Git Messenger',
+            \ 'GV':                'GV',
+            \ 'agit':              'Agit',
+            \ 'agit_diff':         'Agit Diff',
+            \ 'agit_stat':         'Agit Stat',
+            \ 'SpaceVimFlyGrep':   'FlyGrep',
+            \ }
+
+let s:statusline_filename_integrations = {
+            \ 'ControlP':          'statusline#ctrlp#Mode',
+            \ '__CtrlSF__':        'statusline#ctrlsf#Mode',
+            \ '__CtrlSFPreview__': 'statusline#ctrlsf#PreviewMode',
+            \ '__flygrep__':       'statusline#flygrep#Mode',
+            \ '__Tagbar__':        'statusline#tagbar#Mode',
+            \ }
+
+let s:statusline_filetype_integrations = {
+            \ 'ctrlp':           'statusline#ctrlp#Mode',
+            \ 'netrw':           'statusline#netrw#Mode',
+            \ 'dirvish':         'statusline#dirvish#Mode',
+            \ 'molder':          'statusline#molder#Mode',
+            \ 'vaffle':          'statusline#vaffle#Mode',
+            \ 'fern':            'statusline#fern#Mode',
+            \ 'carbon.explorer': 'statusline#carbon#Mode',
+            \ 'neo-tree':        'statusline#neotree#Mode',
+            \ 'oil':             'statusline#oil#Mode',
+            \ 'tagbar':          'statusline#tagbar#Mode',
+            \ 'vista_kind':      'statusline#vista#Mode',
+            \ 'vista':           'statusline#vista#Mode',
+            \ 'gitcommit':       'statusline#gitcommit#Mode',
+            \ 'terminal':        'statusline#terminal#Mode',
+            \ 'help':            'statusline#help#Mode',
+            \ 'qf':              'statusline#quickfix#Mode',
+            \ 'SpaceVimFlyGrep': 'statusline#flygrep#Mode',
+            \ }
+
 function! s:BufferType() abort
     return strlen(&filetype) ? &filetype : &buftype
 endfunction
@@ -66,7 +156,7 @@ function! s:ModifiedStatus(...) abort
 endfunction
 
 function! s:ZoomedStatus(...) abort
-    return g:statusline_zoomed ? '[Z]' : ''
+    return get(g:, 'statusline_zoomed', 0) ? '[Z]' : ''
 endfunction
 
 function! s:SimpleLineInfo(...) abort
@@ -90,6 +180,16 @@ endfunction
 function! statusline#parts#LineInfo() abort
     return ''
 endfunction
+
+if g:statusline_show_linenr > 1
+    function! statusline#parts#LineInfo(...) abort
+        return call('s:FullLineInfo', a:000) . ' '
+    endfunction
+elseif g:statusline_show_linenr > 0
+    function! statusline#parts#LineInfo(...) abort
+        return call('s:SimpleLineInfo', a:000) . ' '
+    endfunction
+endif
 
 function! statusline#parts#FileEncodingAndFormat() abort
     let l:encoding = strlen(&fileencoding) ? &fileencoding : &encoding
@@ -116,11 +216,11 @@ endfunction
 function! statusline#parts#Integration() abort
     let fname = expand('%:t')
 
-    if has_key(g:statusline_filename_modes, fname)
-        let result = { 'name': g:statusline_filename_modes[fname] }
+    if has_key(s:statusline_filename_modes, fname)
+        let result = { 'name': s:statusline_filename_modes[fname] }
 
-        if has_key(g:statusline_filename_integrations, fname)
-            return extend(result, function(g:statusline_filename_integrations[fname])())
+        if has_key(s:statusline_filename_integrations, fname)
+            return extend(result, function(s:statusline_filename_integrations[fname])())
         endif
 
         return result
@@ -140,11 +240,11 @@ function! statusline#parts#Integration() abort
         return statusline#undotree#DiffStatus()
     endif
 
-    if has_key(g:statusline_filetype_modes, ft)
-        let result = { 'name': g:statusline_filetype_modes[ft] }
+    if has_key(s:statusline_filetype_modes, ft)
+        let result = { 'name': s:statusline_filetype_modes[ft] }
 
-        if has_key(g:statusline_filetype_integrations, ft)
-            return extend(result, function(g:statusline_filetype_integrations[ft])())
+        if has_key(s:statusline_filetype_integrations, ft)
+            return extend(result, function(s:statusline_filetype_integrations[ft])())
         endif
 
         return result
@@ -157,20 +257,8 @@ function! statusline#parts#GitBranch(...) abort
     return ''
 endfunction
 
-function! statusline#parts#Init() abort
-    if g:statusline_show_git_branch > 0
-        function! statusline#parts#GitBranch(...) abort
-            return statusline#git#Branch()
-        endfunction
-    endif
-
-    if g:statusline_show_linenr > 1
-        function! statusline#parts#LineInfo(...) abort
-            return call('s:FullLineInfo', a:000) . ' '
-        endfunction
-    elseif g:statusline_show_linenr > 0
-        function! statusline#parts#LineInfo(...) abort
-            return call('s:SimpleLineInfo', a:000) . ' '
-        endfunction
-    endif
-endfunction
+if g:statusline_show_git_branch > 0
+    function! statusline#parts#GitBranch(...) abort
+        return statusline#git#Branch()
+    endfunction
+endif
