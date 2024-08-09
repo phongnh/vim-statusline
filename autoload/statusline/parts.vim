@@ -58,6 +58,7 @@ let s:statusline_filetype_modes = {
             \ 'agit_diff':         'Agit Diff',
             \ 'agit_stat':         'Agit Stat',
             \ 'SpaceVimFlyGrep':   'FlyGrep',
+            \ 'startuptime':       'StartupTime',
             \ }
 
 let s:statusline_filename_integrations = {
