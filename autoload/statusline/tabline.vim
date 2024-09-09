@@ -1,5 +1,5 @@
 function! s:TabPlaceholder(tab) abort
-    return statusline#Hi('TabLineSel') . printf('%%%d %s %%*', a:tab, g:statusline_symbols.ellipsis)
+    return statusline#Hi('TabLineFill') . printf('%%%d  %s %%*', a:tab, g:statusline_symbols.ellipsis)
 endfunction
 
 function! s:TabNumber(n) abort
