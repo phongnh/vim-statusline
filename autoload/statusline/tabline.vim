@@ -1,9 +1,5 @@
-function! s:TabLeftPlaceholder(tab) abort
-    return statusline#Hi('TabLineSel') . printf(' %%%d %s%%*', a:tab, g:statusline_symbols.ellipsis)
-endfunction
-
-function! s:TabRightPlaceholder(tab) abort
-    return statusline#Hi('TabLineSel') . printf('%%%d %s%%* ', a:tab, g:statusline_symbols.ellipsis)
+function! s:TabPlaceholder(tab) abort
+    return statusline#Hi('TabLineSel') . printf('%%%d %s %%*', a:tab, g:statusline_symbols.ellipsis)
 endfunction
 
 function! s:TabNumber(n) abort
@@ -72,7 +68,7 @@ endfunction
 
 function! s:GetMaxTabs() abort
     if &columns >= 120
-        return &columns / 35
+        return &columns / 35 
     else
         return 3
     endif
@@ -106,9 +102,9 @@ function! statusline#tabline#Init() abort
         endif
 
         if current_index == (tab_count - 1)
-            let stl .= s:TabLeftPlaceholder(start_index - 1)
+            let stl .= s:TabPlaceholder(start_index - 1)
         elseif start_index > 0
-            let stl .= s:TabLeftPlaceholder(start_index + 1)
+            let stl .= s:TabPlaceholder(start_index + 1)
         endif
 
         for i in range(1, tab_count)[start_index:end_index]
@@ -116,7 +112,7 @@ function! statusline#tabline#Init() abort
         endfor
 
         if current_index < (tab_count - 1) && end_index < (tab_count - 1)
-            let stl .= s:TabRightPlaceholder(end_index + 1)
+            let stl .= s:TabPlaceholder(end_index + 1)
         endif
     endif
 
