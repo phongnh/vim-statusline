@@ -4,6 +4,7 @@ let s:statusline_ctrlp = {}
 function! s:GetCurrentDir() abort
     let dir = fnamemodify(getcwd(), ':~:.')
     return empty(dir) ? getcwd() : dir
+    return strlen(dir) > 30 ? statusline#ShortenPath(dir) : dir
 endfunction
 
 function! statusline#ctrlp#MainStatus(focus, byfname, regex, prev, item, next, marked) abort
