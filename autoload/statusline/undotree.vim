@@ -8,7 +8,7 @@ endfunction
 
 function! statusline#undotree#DiffStatus(...) abort
     return {
-                \ 'name': 'Undo',
+                \ 'name': 'Diff',
                 \ 'plugin': exists('t:diffpanel') ? t:diffpanel.GetStatusLine() : '',
                 \ }
 endfunction
