@@ -188,6 +188,7 @@ let g:statusline_filetype_integrations = {
             \ 'vista_kind':      'statusline#vista#Mode',
             \ 'vista':           'statusline#vista#Mode',
             \ 'gitcommit':       'statusline#gitcommit#Mode',
+            \ 'GV':              'statusline#gv#Mode',
             \ 'terminal':        'statusline#terminal#Mode',
             \ 'help':            'statusline#help#Mode',
             \ 'qf':              'statusline#quickfix#Mode',
